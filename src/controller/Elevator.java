@@ -12,13 +12,20 @@ public class Elevator implements Serializable{
 	private RMI controller;
 	private int numElevators;
 	private int numFloors;
+	private ElevatorThread[] elevatorThreads;
 
 
 	public Elevator () throws RemoteException{
 		controller = new RMI ();
 		numElevators = controller.getNumberOfElevators ();
 		numFloors = controller.getNumberOfFloors ();
+		elevatorThreads = new ElevatorThread[numElevators];
 		installListeners ();
+		for (int i=0;i<numElevators;i++){
+			ElevatorThread et = new ElevatorThread (i, controller);
+			elevatorThreads[i] = et;
+			new Thread (et).start ();
+		}
 	}
 
 	private void installListeners () throws RemoteException {
