@@ -10,7 +10,7 @@ import elevator.rmi.GetAll;
 import elevator.rmi.RemoteActionListener;
 
 public class RMI {
-	public static final String LOCALHOST = "127.0.0.1";
+//	public static final String LOCALHOST = "127.0.0.1";
 	
 	public GetAll get;
 	
@@ -29,7 +29,7 @@ public class RMI {
             System.setSecurityManager(new SecurityManager());
         }
 		String name = "GetAll";
-        Registry registry = LocateRegistry.getRegistry(LOCALHOST);
+        Registry registry = LocateRegistry.getRegistry(null);
         get = (GetAll) registry.lookup(name);
 	}
 	
