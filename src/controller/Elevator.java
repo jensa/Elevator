@@ -12,15 +12,15 @@ public class Elevator implements Serializable{
 	private RMI controller;
 	private int numElevators;
 	private int numFloors;
-	
-	
+
+
 	public Elevator () throws RemoteException{
 		controller = new RMI ();
 		numElevators = controller.getNumberOfElevators ();
 		numFloors = controller.getNumberOfFloors ();
 		installListeners ();
 	}
-	
+
 	private void installListeners () throws RemoteException {
 		for (int i=0;i<numFloors;i++){
 			final int floor = i;
@@ -33,65 +33,66 @@ public class Elevator implements Serializable{
 					floorButtonPressed (floor, e);
 				}
 
-				
+
 			}, 0);
-			controller.get.makeFloorListener (i, floorListener);
+			controller.makeFloorListener (i, floorListener);
 		}
-		/*
-		for (int i=1;i<=numElevators;i++){
+		for (int i=0;i<numElevators;i++){
 			final int elevator = i;
-			controller.makeFloorListener (i, new RemoteActionListener(){
+			RemoteActionListener insideListener = (RemoteActionListener) UnicastRemoteObject.exportObject (new RemoteActionListener(){
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void actionPerformed (ActionEvent e)
 						throws RemoteException {
-//					insideButtonPressed (elevator, e);
+					insideButtonPressed (elevator, e);
 				}
-			});
+			}, 0);
+			controller.makeInsideListener (i, insideListener);
 		}
-		for (int i=1;i<=numElevators;i++){
+		for (int i=0;i<numElevators;i++){
 			final int elevator = i;
-			controller.makePositionListener(i, new RemoteActionListener(){
+			RemoteActionListener listener = (RemoteActionListener) UnicastRemoteObject.exportObject (new RemoteActionListener(){
 				private static final long serialVersionUID = 1L;
 
 				@Override
 				public void actionPerformed (ActionEvent e)
 						throws RemoteException {
-//					elevatorMoved (elevator, e);
+					elevatorMoved (elevator, e);
 				}
-			});
+			}, 0);
+			controller.makePositionListener (i, listener);
 		}
-			controller.makeVelocityListener (new RemoteActionListener(){
-				private static final long serialVersionUID = 1L;
+		RemoteActionListener listener = (RemoteActionListener) UnicastRemoteObject.exportObject (new RemoteActionListener(){
+			private static final long serialVersionUID = 1L;
 
-				@Override
-				public void actionPerformed (ActionEvent e)
-						throws RemoteException {
-//					velocityChanged (e);
-				}
-			});
-		*/
+			@Override
+			public void actionPerformed (ActionEvent e)
+					throws RemoteException {
+				velocityChanged (e);
+			}
+		}, 0);
+		controller.makeVelocityListener (listener);
 	}
-	
+
 	protected void velocityChanged (ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+		System.out.println ("VELOCITY CHANGED");
+
 	}
 
 	protected void elevatorMoved (int elevator, ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+		System.out.println ("Elevator "+elevator+" moved");
+
 	}
 
 	private void floorButtonPressed (int floor, ActionEvent e) {
 		System.out.println ("FUCK floor "+floor);
-		
+
 	}
-	
+
 	private void insideButtonPressed (int elevator, ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+		System.out.println ("Button inside elevator "+elevator+" pressed");
+
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
@@ -111,7 +112,7 @@ public class Elevator implements Serializable{
 			}
 		}
 	}
-	
+
 	public static void main(String[] args){
 		//Set policy file so we don't get weird permission errors
 		System.setProperty("java.security.policy","file:./rmi.policy");
