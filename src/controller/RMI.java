@@ -34,7 +34,10 @@ public class RMI {
 	}
 	
 	public static void main(String[] args){
+
+		System.setProperty("java.security.policy","file:./rmi.policy");
 		RMI r = new RMI ();
+		r.init ();
 		try {
 			System.out.println (r.get.getNumberOfElevators ());
 		} catch (RemoteException e) {
