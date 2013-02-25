@@ -1,8 +1,10 @@
 package controller;
 
+import java.awt.event.ActionEvent;
 import java.rmi.RemoteException;
 
 import elevator.rmi.Door;
+import elevator.rmi.RemoteActionListener;
 
 public class Elevator {
 	private RMI controller;
@@ -14,8 +16,80 @@ public class Elevator {
 		controller = new RMI ();
 		numElevators = controller.getNumberOfElevators ();
 		numFloors = controller.getNumberOfFloors ();
+		installListeners ();
 	}
 	
+	private void installListeners () {
+		for (int i=1;i<=numFloors;i++){
+			final int floor = i;
+			controller.makeFloorListener (i, new RemoteActionListener(){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed (ActionEvent e)
+						throws RemoteException {
+					floorButtonPressed (floor, e);
+				}
+
+				
+			});
+		}
+		for (int i=1;i<=numElevators;i++){
+			final int elevator = i;
+			controller.makeFloorListener (i, new RemoteActionListener(){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed (ActionEvent e)
+						throws RemoteException {
+					insideButtonPressed (elevator, e);
+				}
+			});
+		}
+		for (int i=1;i<=numElevators;i++){
+			final int elevator = i;
+			controller.makePositionListener(i, new RemoteActionListener(){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed (ActionEvent e)
+						throws RemoteException {
+					elevatorMoved (elevator, e);
+				}
+			});
+		}
+			controller.makeVelocityListener (new RemoteActionListener(){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed (ActionEvent e)
+						throws RemoteException {
+					velocityChanged (e);
+				}
+			});
+		
+	}
+	
+	protected void velocityChanged (ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	protected void elevatorMoved (int elevator, ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void floorButtonPressed (int floor, ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	private void insideButtonPressed (int elevator, ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	public void runElevatorController () throws RemoteException, InterruptedException{
 		int[] allDoors = new int[numElevators];
 		
