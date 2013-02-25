@@ -1,6 +1,8 @@
 package controller;
 
+import java.io.Serializable;
 import java.rmi.NotBoundException;
+import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -16,10 +18,10 @@ import elevator.rmi.RemoteActionListener;
 import elevator.rmi.Scale;
 import elevator.rmi.Scales;
 
-public class RMI {
+public class RMI implements Serializable, Remote{
 //	public static final String LOCALHOST = "127.0.0.1";
 	
-	private GetAll get;
+	public GetAll get;
 	
 	public RMI (){
 		init ();

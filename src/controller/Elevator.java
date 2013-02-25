@@ -2,27 +2,29 @@ package controller;
 
 import java.awt.event.ActionEvent;
 import java.rmi.RemoteException;
-
+import java.rmi.server.UnicastRemoteObject;
+import java.io.Serializable;
 import elevator.rmi.Door;
 import elevator.rmi.RemoteActionListener;
 
-public class Elevator {
+public class Elevator implements Serializable{
+	private static final long serialVersionUID = 1L;
 	private RMI controller;
 	private int numElevators;
 	private int numFloors;
 	
 	
-	public Elevator (){
+	public Elevator () throws RemoteException{
 		controller = new RMI ();
 		numElevators = controller.getNumberOfElevators ();
 		numFloors = controller.getNumberOfFloors ();
 		installListeners ();
 	}
 	
-	private void installListeners () {
-		for (int i=1;i<=numFloors;i++){
+	private void installListeners () throws RemoteException {
+		for (int i=0;i<numFloors;i++){
 			final int floor = i;
-			controller.makeFloorListener (i, new RemoteActionListener(){
+			RemoteActionListener floorListener = (RemoteActionListener) UnicastRemoteObject.exportObject (new RemoteActionListener(){
 				private static final long serialVersionUID = 1L;
 
 				@Override
@@ -32,8 +34,10 @@ public class Elevator {
 				}
 
 				
-			});
+			}, 0);
+			controller.get.makeFloorListener (i, floorListener);
 		}
+		/*
 		for (int i=1;i<=numElevators;i++){
 			final int elevator = i;
 			controller.makeFloorListener (i, new RemoteActionListener(){
@@ -42,7 +46,7 @@ public class Elevator {
 				@Override
 				public void actionPerformed (ActionEvent e)
 						throws RemoteException {
-					insideButtonPressed (elevator, e);
+//					insideButtonPressed (elevator, e);
 				}
 			});
 		}
@@ -54,7 +58,7 @@ public class Elevator {
 				@Override
 				public void actionPerformed (ActionEvent e)
 						throws RemoteException {
-					elevatorMoved (elevator, e);
+//					elevatorMoved (elevator, e);
 				}
 			});
 		}
@@ -64,10 +68,10 @@ public class Elevator {
 				@Override
 				public void actionPerformed (ActionEvent e)
 						throws RemoteException {
-					velocityChanged (e);
+//					velocityChanged (e);
 				}
 			});
-		
+		*/
 	}
 	
 	protected void velocityChanged (ActionEvent e) {
@@ -81,7 +85,7 @@ public class Elevator {
 	}
 
 	private void floorButtonPressed (int floor, ActionEvent e) {
-		// TODO Auto-generated method stub
+		System.out.println ("FUCK floor "+floor);
 		
 	}
 	
@@ -91,8 +95,6 @@ public class Elevator {
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
-		int[] allDoors = new int[numElevators];
-		
 		Door[] doors = new Door[numElevators];
 		for (int i=1;i<=numElevators;i++){
 			doors[i-1] = controller.getDoor (i);
