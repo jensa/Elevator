@@ -24,7 +24,7 @@ public class ElevatorController implements Serializable{
 		elevatorThreads = new ElevatorThread[numElevators];
 		installListeners ();
 		for (int i=0;i<numElevators;i++){
-			ElevatorThread et = new ElevatorThread (i, controller);
+			ElevatorThread et = new ElevatorThread (i+1, controller);
 			elevatorThreads[i] = et;
 			new Thread (et).start ();
 		}
@@ -94,17 +94,19 @@ public class ElevatorController implements Serializable{
 
 	}
 
-	private void floorButtonPressed (int floor, ActionEvent e) {
+	private void floorButtonPressed (int floor, ActionEvent e) throws RemoteException {
 		// find the nearest? elevator that's not occupied and send it to the floor
 		String command = e.getActionCommand ();
 		int direction = Integer.parseInt (command.split (" ")[2]);
-		if (direction > 1){
-			//Go up
-			Motor m = controller.getMotor (1);
-			Elevator el = controller.getElevator (1);
+		Order o = new Order();
+		o.argument = floor;
+		o.type = Order.Type.MOVE;
+		if (direction > 0){
+			//passenger want to go upwards
 		}else{
 			//go down
 		}
+		elevatorThreads[0].addOrder (o);
 
 	}
 
