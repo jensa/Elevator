@@ -25,7 +25,7 @@ public class ElevatorThread implements Runnable{
 	private AudioClip bing;
 	private boolean isMoving = false;
 	private ConcurrentLinkedDeque<Order> elevatorOrders = new ConcurrentLinkedDeque<Order> ();
-	
+
 	public ElevatorThread (int id, RMI controller){
 		this.controller = controller;
 		this.id = id;
@@ -52,7 +52,7 @@ public class ElevatorThread implements Runnable{
 			e.printStackTrace ();
 		}
 	}
-	
+
 	private void move (int floor) throws RemoteException{
 		setIsMoving (true);
 		Motor m = controller.getMotor (id);
@@ -61,7 +61,7 @@ public class ElevatorThread implements Runnable{
 		setIsMoving (false);
 		openDoor ();
 	}
-	
+
 	private void openDoor () throws RemoteException{
 		controller.getDoor (id).open ();
 		bing.play ();
@@ -91,22 +91,35 @@ public class ElevatorThread implements Runnable{
 	public Order getNextOrder (){
 		return elevatorOrders.poll ();
 	}
-	
+
 	public void addOrder (Order o){
-		if (o instanceof FloorOrder)
-			elevatorOrders.addLast (o);
-		else
+		if (o instanceof FloorOrder) {
+			if (!elevatorOrders.isEmpty()) {
+				if (elevatorOrders.peekLast().compareTo(o) == 1) {
+					System.out.println("Duplicate FloorOrder, not added to the queue");
+					return;
+				}
+			}
+			elevatorOrders.addLast(o);
+		} else {
+			if (!elevatorOrders.isEmpty()) {
+				if (elevatorOrders.peekFirst().compareTo(o) == 1) {
+					System.out.println("Duplicate InsideOrder, not added to the queue");
+					return;
+				}
+			}
 			elevatorOrders.addFirst (o);
+		}
 	}
-	
+
 	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;
 	}
-	
+
 	public synchronized boolean isMoving (){
 		return isMoving;
 	}
-	
+
 	public synchronized void setIsMoving (boolean isMo){
 		isMoving = isMo;
 	}

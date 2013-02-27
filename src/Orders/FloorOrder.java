@@ -1,6 +1,6 @@
 package Orders;
 
-public class FloorOrder extends Order{
+public class FloorOrder extends Order {
 	public int floor;
 	public boolean goingUp;
 	
@@ -13,5 +13,15 @@ public class FloorOrder extends Order{
 	@Override
 	public int moveToFloor (){
 		return floor;
+	}
+
+	@Override
+	public int compareTo(Order o) {
+		FloorOrder fo = (FloorOrder) o; 
+		
+		if (floor == fo.floor && goingUp == fo.goingUp)
+			return 1;
+		else
+			return 0;
 	}
 }

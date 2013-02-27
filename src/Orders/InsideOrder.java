@@ -16,4 +16,14 @@ public class InsideOrder extends Order{
 		return destination;
 	}
 
+	@Override
+	public int compareTo(Order o) {
+		
+		InsideOrder io = (InsideOrder) o;
+		
+		if (elevator == io.elevator && destination == io.destination)
+			return 1;
+		else
+			return 0;
+	}
 }

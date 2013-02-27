@@ -1,6 +1,6 @@
 package Orders;
 
-public abstract class Order {
+public abstract class Order implements Comparable<Order> {
 	boolean isInsideOrder;
 	
 	public boolean isInsideOrder (){
