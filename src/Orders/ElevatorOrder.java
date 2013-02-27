@@ -1,6 +1,6 @@
-package controller;
+package Orders;
 
-public class Order {
+public class ElevatorOrder {
 	public enum Type{
 		MOVE, STOP, OPEN, CLOSE
 	}

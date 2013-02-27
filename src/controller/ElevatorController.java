@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.io.Serializable;
+
+import Orders.ElevatorOrder;
 import elevator.rmi.Door;
 import elevator.rmi.Elevator;
 import elevator.rmi.Motor;
@@ -18,7 +20,7 @@ public class ElevatorController implements Serializable{
 	private int numElevators;
 	private int numFloors;
 	private ElevatorThread[] elevatorThreads;
-	private ConcurrentLinkedDeque<Order> orders = new ConcurrentLinkedDeque<Order> ();
+	private ConcurrentLinkedDeque<ElevatorOrder> elevatorOrders = new ConcurrentLinkedDeque<ElevatorOrder> ();
 	private double[] currentPositions;
 	private double[] lastPositions;
 	private double velocity;
@@ -117,33 +119,32 @@ public class ElevatorController implements Serializable{
 		// find the nearest? elevator that's not occupied and send it to the floor
 		String command = e.getActionCommand ();
 		int direction = Integer.parseInt (command.split (" ")[2]);
-		Order o = new Order();
+		ElevatorOrder o = new ElevatorOrder();
 		o.argument = floor;
-		o.type = Order.Type.MOVE;
+		o.type = ElevatorOrder.Type.MOVE;
 		if (direction > 0){
 			//passenger want to go upwards
 		}else{
 			//go down
 		}
 		elevatorThreads[0].addOrder (o);
-
 	}
 
 	private void insideButtonPressed (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
 		int destination = Integer.parseInt (command.split (" ")[2]);
-		Order o = new Order();
+		ElevatorOrder o = new ElevatorOrder();
 		o.argument = destination;
-		o.type = Order.Type.MOVE;
+		o.type = ElevatorOrder.Type.MOVE;
 		elevatorThreads[elevator].addOrder(o);
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
-//		while (true){
-//			while (orders.isEmpty ()){
-//				
-//			}
-//		}
+		while (true){
+			while (elevatorOrders.isEmpty ()){
+				
+			}
+		}
 	}
 
 	public static void main(String[] args){
