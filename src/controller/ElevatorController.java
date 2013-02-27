@@ -145,6 +145,15 @@ public class ElevatorController implements Serializable{
 	}
 
 	private void handleFloorOrder (FloorOrder o) {
+		for (int i = 0; i < numElevators; i++) {
+			if (elevatorThreads[i].isMoving ()) {
+				if (o.compareTo(elevatorThreads[i].getCurrentOrder()) == 1) {
+					System.out.println("Elevator " + (i+1) + " is already moving towards floor " + o.floor);
+					return;
+				}
+			}
+		}
+		
 		for (int i=0;i<numElevators;i++){
 			if (!elevatorThreads[i].isMoving ()){
 				if (elevatorIsOnFloor (o.floor, currentPositions[i])){

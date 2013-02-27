@@ -22,6 +22,7 @@ import java.applet.*;
 public class ElevatorThread implements Runnable{
 	RMI controller;
 	int id;
+	private Order currentOrder;
 	private AudioClip bing;
 	private boolean isMoving = false;
 	private ConcurrentLinkedDeque<Order> elevatorOrders = new ConcurrentLinkedDeque<Order> ();
@@ -44,8 +45,9 @@ public class ElevatorThread implements Runnable{
 		try{
 			while (true){
 				while (!elevatorOrders.isEmpty ()){
-					Order o = getNextOrder ();
-					move (o.moveToFloor ());
+					currentOrder = getNextOrder ();
+					
+					move (currentOrder.moveToFloor ());
 				}
 			}
 		}catch (Exception e){
@@ -122,6 +124,10 @@ public class ElevatorThread implements Runnable{
 
 	public synchronized void setIsMoving (boolean isMo){
 		isMoving = isMo;
+	}
+
+	public Order getCurrentOrder() {
+		return currentOrder;
 	}
 
 }
