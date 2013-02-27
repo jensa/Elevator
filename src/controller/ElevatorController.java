@@ -7,6 +7,9 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.io.Serializable;
 
 import Orders.ElevatorOrder;
+import Orders.FloorOrder;
+import Orders.InsideOrder;
+import Orders.ServerOrder;
 import elevator.rmi.Door;
 import elevator.rmi.Elevator;
 import elevator.rmi.Motor;
@@ -20,7 +23,7 @@ public class ElevatorController implements Serializable{
 	private int numElevators;
 	private int numFloors;
 	private ElevatorThread[] elevatorThreads;
-	private ConcurrentLinkedDeque<ElevatorOrder> elevatorOrders = new ConcurrentLinkedDeque<ElevatorOrder> ();
+	private ConcurrentLinkedDeque<ServerOrder> elevatorOrders = new ConcurrentLinkedDeque<ServerOrder> ();
 	private double[] currentPositions;
 	private double[] lastPositions;
 	private double velocity;
@@ -119,32 +122,37 @@ public class ElevatorController implements Serializable{
 		// find the nearest? elevator that's not occupied and send it to the floor
 		String command = e.getActionCommand ();
 		int direction = Integer.parseInt (command.split (" ")[2]);
-		ElevatorOrder o = new ElevatorOrder();
-		o.argument = floor;
-		o.type = ElevatorOrder.Type.MOVE;
-		if (direction > 0){
-			//passenger want to go upwards
-		}else{
-			//go down
-		}
-		elevatorThreads[0].addOrder (o);
+		FloorOrder order = new FloorOrder (floor, direction > 0);
+		elevatorOrders.addLast (order);
 	}
 
 	private void insideButtonPressed (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
 		int destination = Integer.parseInt (command.split (" ")[2]);
-		ElevatorOrder o = new ElevatorOrder();
-		o.argument = destination;
-		o.type = ElevatorOrder.Type.MOVE;
-		elevatorThreads[elevator].addOrder(o);
+		InsideOrder order = new InsideOrder (elevator, destination);
+		elevatorOrders.addLast (order);
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
 		while (true){
 			while (elevatorOrders.isEmpty ()){
-				
+				ServerOrder o = elevatorOrders.poll ();
+				if (o.isInsideOrder ()){
+					handleInsideOrder ((InsideOrder) o);
+				} else
+					handleFloorOrder ((FloorOrder) o);
 			}
 		}
+	}
+
+	private void handleFloorOrder (FloorOrder o) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	private void handleInsideOrder (InsideOrder o) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	public static void main(String[] args){
