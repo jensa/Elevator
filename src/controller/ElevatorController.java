@@ -3,6 +3,7 @@ package controller;
 import java.awt.event.ActionEvent;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.io.Serializable;
 import elevator.rmi.Door;
 import elevator.rmi.Elevator;
@@ -11,10 +12,17 @@ import elevator.rmi.RemoteActionListener;
 
 public class ElevatorController implements Serializable{
 	private static final long serialVersionUID = 1L;
+	
+	private static final double VELOCITY_LIMIT_TRIGGER = 10;
 	private RMI controller;
 	private int numElevators;
 	private int numFloors;
 	private ElevatorThread[] elevatorThreads;
+	private ConcurrentLinkedDeque<Order> orders = new ConcurrentLinkedDeque<Order> ();
+	private double[] currentPositions;
+	private double[] lastPositions;
+	private double velocity;
+	private boolean overSpeedLimit = false;
 
 
 	public ElevatorController () throws RemoteException{
@@ -22,6 +30,8 @@ public class ElevatorController implements Serializable{
 		numElevators = controller.getNumberOfElevators ();
 		numFloors = controller.getNumberOfFloors ();
 		elevatorThreads = new ElevatorThread[numElevators];
+		currentPositions = new double[numElevators];
+		lastPositions = new double[numElevators];
 		installListeners ();
 		for (int i=0;i<numElevators;i++){
 			ElevatorThread et = new ElevatorThread (i+1, controller);
@@ -85,13 +95,22 @@ public class ElevatorController implements Serializable{
 	}
 
 	protected void velocityChanged (ActionEvent e) {
-		System.out.println ("VELOCITY CHANGED");
-
+		String command = e.getActionCommand ();
+		double rawVelocity = Double.parseDouble (command.split (" ")[1]);
+		double vel = rawVelocity * 100000;
+		velocity = vel;
+		if (velocity > VELOCITY_LIMIT_TRIGGER)
+			overSpeedLimit = true;
+		else
+			overSpeedLimit = false;
 	}
 
 	protected void elevatorMoved (int elevator, ActionEvent e) {
+		String command = e.getActionCommand ();
+		double position = Double.parseDouble (command.split (" ")[2]);
+		lastPositions[elevator] = currentPositions[elevator-1];
+		currentPositions[elevator] = position;
 		System.out.println ("Elevator "+elevator+" moved");
-
 	}
 
 	private void floorButtonPressed (int floor, ActionEvent e) throws RemoteException {
@@ -120,6 +139,11 @@ public class ElevatorController implements Serializable{
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
+//		while (true){
+//			while (orders.isEmpty ()){
+//				
+//			}
+//		}
 	}
 
 	public static void main(String[] args){
