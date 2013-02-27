@@ -30,7 +30,8 @@ public class ElevatorThread implements Runnable{
 		this.id = id;
 		URL soundPath = null;
 		try {
-			soundPath = new URL("sound.wav");
+			File f = new File ("sound.wav");
+			soundPath = f.toURI ().toURL ();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
 		} // Get the Sound URL
