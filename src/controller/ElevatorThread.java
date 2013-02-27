@@ -59,6 +59,7 @@ public class ElevatorThread implements Runnable{
 			}
 		} else if (el.whereIs () < floor){
 			while (el.whereIs () < floor){
+				System.out.println ("Elevator "+id+"moving up");
 				m.up ();
 			}
 		}

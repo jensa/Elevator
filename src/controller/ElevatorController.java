@@ -112,7 +112,7 @@ public class ElevatorController implements Serializable{
 	protected void elevatorMoved (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
 		double position = Double.parseDouble (command.split (" ")[2]);
-		lastPositions[elevator] = currentPositions[elevator-1];
+		lastPositions[elevator] = currentPositions[elevator];
 		currentPositions[elevator] = position;
 		System.out.println ("Elevator "+elevator+" moved");
 	}
