@@ -114,7 +114,7 @@ public class ElevatorController implements Serializable{
 		double position = Double.parseDouble (command.split (" ")[2]);
 		lastPositions[elevator] = currentPositions[elevator];
 		currentPositions[elevator] = position;
-		System.out.println ("Elevator "+elevator+" moved");
+		//System.out.println ("Elevator "+elevator+" moved");
 	}
 
 	private void floorButtonPressed (int floor, ActionEvent e) throws RemoteException {
@@ -148,6 +148,7 @@ public class ElevatorController implements Serializable{
 		for (int i=0;i<numElevators;i++){
 			if (!elevatorThreads[i].isMoving ()){
 				if (elevatorIsOnFloor (o.floor, currentPositions[i])){
+					System.out.println("Moving elevator " + i + " to floor " + o.floor);
 					elevatorThreads[i].addOrder (o);
 					return;
 				}
@@ -166,9 +167,6 @@ public class ElevatorController implements Serializable{
 		}
 		if (closestElevator > -1)
 			elevatorThreads[closestElevator].addOrder (o);
-		
-		
-
 	}
 
 	private boolean elevatorIsOnFloor (int floor, double d) {
@@ -176,7 +174,7 @@ public class ElevatorController implements Serializable{
 	}
 
 	private void handleInsideOrder (InsideOrder o) {
-		
+		elevatorThreads[o.elevator].addOrder(o);
 	}
 
 	public static void main(String[] args){

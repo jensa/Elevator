@@ -12,6 +12,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
+import Orders.FloorOrder;
 import Orders.Order;
 
 import elevator.rmi.Elevator;
@@ -59,7 +60,6 @@ public class ElevatorThread implements Runnable{
 		moveToFloor (floor, m, el);
 		setIsMoving (false);
 		openDoor ();
-		
 	}
 	
 	private void openDoor () throws RemoteException{
@@ -80,7 +80,7 @@ public class ElevatorThread implements Runnable{
 			}
 		} else if (el.whereIs () < floor){
 			while (el.whereIs () < floor){
-				System.out.println ("Elevator "+id+"moving up");
+				//System.out.println ("Elevator "+id+" moving up");
 				m.up ();
 			}
 		}
@@ -93,7 +93,10 @@ public class ElevatorThread implements Runnable{
 	}
 	
 	public void addOrder (Order o){
-		elevatorOrders.addFirst (o);
+		if (o instanceof FloorOrder)
+			elevatorOrders.addLast (o);
+		else
+			elevatorOrders.addFirst (o);
 	}
 	
 	public ConcurrentLinkedDeque<Order> getOrders (){
