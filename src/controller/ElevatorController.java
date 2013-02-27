@@ -6,10 +6,9 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.io.Serializable;
 
-import Orders.ElevatorOrder;
 import Orders.FloorOrder;
 import Orders.InsideOrder;
-import Orders.ServerOrder;
+import Orders.Order;
 import elevator.rmi.Door;
 import elevator.rmi.Elevator;
 import elevator.rmi.Motor;
@@ -23,7 +22,7 @@ public class ElevatorController implements Serializable{
 	private int numElevators;
 	private int numFloors;
 	private ElevatorThread[] elevatorThreads;
-	private ConcurrentLinkedDeque<ServerOrder> elevatorOrders = new ConcurrentLinkedDeque<ServerOrder> ();
+	private ConcurrentLinkedDeque<Order> elevatorOrders = new ConcurrentLinkedDeque<Order> ();
 	private double[] currentPositions;
 	private double[] lastPositions;
 	private double velocity;
@@ -135,8 +134,8 @@ public class ElevatorController implements Serializable{
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
 		while (true){
-			while (elevatorOrders.isEmpty ()){
-				ServerOrder o = elevatorOrders.poll ();
+			while (!elevatorOrders.isEmpty ()){
+				Order o = elevatorOrders.poll ();
 				if (o.isInsideOrder ()){
 					handleInsideOrder ((InsideOrder) o);
 				} else
@@ -146,12 +145,37 @@ public class ElevatorController implements Serializable{
 	}
 
 	private void handleFloorOrder (FloorOrder o) {
-		// TODO Auto-generated method stub
+		for (int i=0;i<numElevators;i++){
+			if (!elevatorThreads[i].isMoving ()){
+				if (elevatorIsOnFloor (o.floor, currentPositions[i])){
+					elevatorThreads[i].addOrder (o);
+					return;
+				}
+			}
+		}
+		int closestElevator = -1;
+		double dist = 10000000;
+		for (int i=0;i<numElevators;i++){
+			if (!elevatorThreads[i].isMoving ()){
+				double distToFloor = Math.abs (o.floor-currentPositions[i]);
+				if (distToFloor < dist){
+					dist = distToFloor;
+					closestElevator = i;
+				}
+			}
+		}
+		if (closestElevator > -1)
+			elevatorThreads[closestElevator].addOrder (o);
 		
+		
+
+	}
+
+	private boolean elevatorIsOnFloor (int floor, double d) {
+		return d > floor-0.001 && d < floor+0.001;
 	}
 
 	private void handleInsideOrder (InsideOrder o) {
-		// TODO Auto-generated method stub
 		
 	}
 

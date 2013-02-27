@@ -1,6 +1,6 @@
 package Orders;
 
-public class FloorOrder extends ServerOrder{
+public class FloorOrder extends Order{
 	public int floor;
 	public boolean goingUp;
 	
@@ -8,5 +8,10 @@ public class FloorOrder extends ServerOrder{
 		floor = fl;
 		goingUp = gu;
 		isInsideOrder = false;
+	}
+	
+	@Override
+	public int moveToFloor (){
+		return floor;
 	}
 }

@@ -1,6 +1,6 @@
 package Orders;
 
-public class InsideOrder extends ServerOrder{
+public class InsideOrder extends Order{
 	
 	public int elevator;
 	public int destination;
@@ -9,6 +9,11 @@ public class InsideOrder extends ServerOrder{
 		elevator = ele;
 		destination = dest;
 		isInsideOrder = true;
+	}
+	
+	@Override
+	public int moveToFloor (){
+		return destination;
 	}
 
 }

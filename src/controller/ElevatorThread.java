@@ -2,8 +2,7 @@ package controller;
 
 import java.rmi.RemoteException;
 import java.util.concurrent.ConcurrentLinkedDeque;
-
-import Orders.ElevatorOrder;
+import Orders.Order;
 
 import elevator.rmi.Elevator;
 import elevator.rmi.Motor;
@@ -11,7 +10,8 @@ import elevator.rmi.Motor;
 public class ElevatorThread implements Runnable{
 	RMI controller;
 	int id;
-	private ConcurrentLinkedDeque<ElevatorOrder> elevatorOrders = new ConcurrentLinkedDeque<ElevatorOrder> ();
+	private boolean isMoving = false;
+	private ConcurrentLinkedDeque<Order> elevatorOrders = new ConcurrentLinkedDeque<Order> ();
 	
 	public ElevatorThread (int id, RMI controller){
 		this.controller = controller;
@@ -23,10 +23,8 @@ public class ElevatorThread implements Runnable{
 		try{
 			while (true){
 				while (!elevatorOrders.isEmpty ()){
-					ElevatorOrder o = getNextOrder ();
-					switch (o.type){
-					case MOVE: move (o.argument);break;
-					}
+					Order o = getNextOrder ();
+					move (o.moveToFloor ());
 				}
 			}
 		}catch (Exception e){
@@ -35,10 +33,13 @@ public class ElevatorThread implements Runnable{
 	}
 	
 	private void move (int floor) throws RemoteException{
+		setIsMoving (true);
 		Motor m = controller.getMotor (id);
 		Elevator el = controller.getElevator (id);
 		moveToFloor (floor, m, el);
+		setIsMoving (false);
 		openDoor ();
+		
 	}
 	
 	private void openDoor () throws RemoteException{
@@ -65,16 +66,24 @@ public class ElevatorThread implements Runnable{
 		m.stop ();
 	}
 
-	public ElevatorOrder getNextOrder (){
+	public Order getNextOrder (){
 		return elevatorOrders.poll ();
 	}
 	
-	public void addOrder (ElevatorOrder o){
+	public void addOrder (Order o){
 		elevatorOrders.addFirst (o);
 	}
 	
-	public ConcurrentLinkedDeque<ElevatorOrder> getOrders (){
+	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;
+	}
+	
+	public synchronized boolean isMoving (){
+		return isMoving;
+	}
+	
+	public synchronized void setIsMoving (boolean isMo){
+		isMoving = isMo;
 	}
 
 }
