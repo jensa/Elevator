@@ -113,8 +113,10 @@ public class ElevatorController implements Serializable{
 	private void insideButtonPressed (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
 		int destination = Integer.parseInt (command.split (" ")[2]);
-		//Go to destination
-
+		Order o = new Order();
+		o.argument = destination;
+		o.type = Order.Type.MOVE;
+		elevatorThreads[elevator].addOrder(o);
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
