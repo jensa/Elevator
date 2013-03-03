@@ -13,6 +13,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
 import Orders.FloorOrder;
+import Orders.InsideOrder;
 import Orders.Order;
 
 import elevator.rmi.Elevator;
@@ -20,12 +21,15 @@ import elevator.rmi.Motor;
 import java.applet.*;
 
 public class ElevatorThread implements Runnable{
+	private static final int STOP_FLOOR = 32000;
 	RMI controller;
 	int id;
 	private Order currentOrder;
 	private AudioClip bing;
 	private boolean isMoving = false;
+	private ConcurrentLinkedDeque<Order> emergencyOrders = new ConcurrentLinkedDeque<Order> ();
 	private ConcurrentLinkedDeque<Order> elevatorOrders = new ConcurrentLinkedDeque<Order> ();
+	private int movingToFloor;
 
 	public ElevatorThread (int id, RMI controller){
 		this.controller = controller;
@@ -46,8 +50,10 @@ public class ElevatorThread implements Runnable{
 			while (true){
 				while (!elevatorOrders.isEmpty ()){
 					currentOrder = getNextOrder ();
-					
-					move (currentOrder.moveToFloor ());
+					if (currentOrder.moveToFloor () == STOP_FLOOR)
+						stop ();
+					else
+						move (currentOrder.moveToFloor ());
 				}
 			}
 		}catch (Exception e){
@@ -55,13 +61,23 @@ public class ElevatorThread implements Runnable{
 		}
 	}
 
+	private void stop () throws RemoteException {
+		controller.getMotor (id).stop ();
+		elevatorOrders.clear ();
+		emergencyOrders.clear ();
+		
+	}
+
 	private void move (int floor) throws RemoteException{
 		setIsMoving (true);
 		Motor m = controller.getMotor (id);
 		Elevator el = controller.getElevator (id);
-		moveToFloor (floor, m, el);
-		setIsMoving (false);
-		openDoor ();
+		if (moveToFloor (floor, m, el)){
+			setIsMoving (false);
+			openDoor ();
+		} else{
+			setIsMoving (false);
+		}
 	}
 
 	private void openDoor () throws RemoteException{
@@ -75,19 +91,29 @@ public class ElevatorThread implements Runnable{
 		controller.getDoor (id).close ();
 	}
 
-	private void moveToFloor (int floor, Motor m, Elevator el) throws RemoteException{
+	private boolean moveToFloor (int floor, Motor m, Elevator el) throws RemoteException{
+		setMovingToFloor (floor);
 		if (el.whereIs () > floor){
 			while (el.whereIs () > floor){
-				m.down ();
+				if (!emergencyOrders.isEmpty ()){
+					elevatorOrders.addFirst (new InsideOrder (-1, floor));
+					elevatorOrders.addFirst (emergencyOrders.getFirst ());
+					return false;
+				}else
+					m.down ();
 			}
 		} else if (el.whereIs () < floor){
 			while (el.whereIs () < floor){
-				//System.out.println ("Elevator "+id+" moving up");
-				m.up ();
+				if (!emergencyOrders.isEmpty ()){
+					elevatorOrders.addFirst (new InsideOrder (-1, floor));
+					elevatorOrders.addFirst (emergencyOrders.getFirst ());
+					return false;
+				}else
+					m.up ();
 			}
 		}
-
 		m.stop ();
+		return true;
 	}
 
 	public Order getNextOrder (){
@@ -110,7 +136,10 @@ public class ElevatorThread implements Runnable{
 					return;
 				}
 			}
-			elevatorOrders.addFirst (o);
+			if (o.moveToFloor () == STOP_FLOOR || o.emergency)
+				emergencyOrders.addFirst (o);
+			else
+				elevatorOrders.addFirst (o);
 		}
 	}
 
@@ -124,6 +153,14 @@ public class ElevatorThread implements Runnable{
 
 	public synchronized void setIsMoving (boolean isMo){
 		isMoving = isMo;
+	}
+	
+	public synchronized void setMovingToFloor (int fl){
+		movingToFloor = fl;
+	}
+	
+	public synchronized int getMovingToFloor (){
+		return movingToFloor;
 	}
 
 	public Order getCurrentOrder() {

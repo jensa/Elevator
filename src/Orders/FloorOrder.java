@@ -17,6 +17,8 @@ public class FloorOrder extends Order {
 
 	@Override
 	public int compareTo(Order o) {
+		if (!(o instanceof FloorOrder))
+			return -1;
 		FloorOrder fo = (FloorOrder) o; 
 		
 		if (floor == fo.floor && goingUp == fo.goingUp)

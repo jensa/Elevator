@@ -18,6 +18,8 @@ public class InsideOrder extends Order{
 
 	@Override
 	public int compareTo(Order o) {
+		if (!(o instanceof InsideOrder))
+			return -1;
 		InsideOrder io = (InsideOrder) o;
 		
 		if (elevator == io.elevator && destination == io.destination)

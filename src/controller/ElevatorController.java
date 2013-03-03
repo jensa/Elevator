@@ -127,6 +127,7 @@ public class ElevatorController implements Serializable{
 
 	private void insideButtonPressed (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
+		System.out.println (command);
 		int destination = Integer.parseInt (command.split (" ")[2]);
 		InsideOrder order = new InsideOrder (elevator, destination);
 		elevatorOrders.addLast (order);
@@ -183,6 +184,20 @@ public class ElevatorController implements Serializable{
 	}
 
 	private void handleInsideOrder (InsideOrder o) {
+		//Find out if this order is 'on the way', if so, make it an emergency order
+		//so that the elevator will go there before its current destination
+		double curPos = currentPositions[o.elevator];
+		ElevatorThread elevator = elevatorThreads[o.elevator];
+		if (elevator.isMoving () && curPos > lastPositions[o.elevator]){
+			//going up
+			//if the floor wanted is on the way, we'll give priority to this order
+			if (o.destination > curPos && o.destination < elevator.getMovingToFloor ())
+				o.emergency = true;
+		} else if (elevator.isMoving () && curPos < lastPositions[o.elevator]){
+			//going down
+			if (o.destination < curPos && o.destination > elevator.getMovingToFloor ())
+				o.emergency = true;
+		}
 		elevatorThreads[o.elevator].addOrder(o);
 	}
 
