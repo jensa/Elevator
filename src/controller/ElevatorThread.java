@@ -97,7 +97,7 @@ public class ElevatorThread implements Runnable{
 			while (el.whereIs () > floor){
 				if (!emergencyOrders.isEmpty ()){
 					elevatorOrders.addFirst (new InsideOrder (-1, floor));
-					elevatorOrders.addFirst (emergencyOrders.getFirst ());
+					elevatorOrders.addFirst (emergencyOrders.poll ());
 					return false;
 				}else
 					m.down ();
@@ -106,7 +106,7 @@ public class ElevatorThread implements Runnable{
 			while (el.whereIs () < floor){
 				if (!emergencyOrders.isEmpty ()){
 					elevatorOrders.addFirst (new InsideOrder (-1, floor));
-					elevatorOrders.addFirst (emergencyOrders.getFirst ());
+					elevatorOrders.addFirst (emergencyOrders.poll ());
 					return false;
 				}else
 					m.up ();
