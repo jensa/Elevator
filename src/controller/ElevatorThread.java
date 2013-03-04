@@ -85,7 +85,6 @@ public class ElevatorThread implements Runnable{
 	}
 	/**
 	 * Open the elevator door and play a nice sound, and close it after a time
-	 * TODO: Door opening time should be adjusted when velocity is changed
 	 * @throws RemoteException
 	 */
 	private void openDoor () throws RemoteException{
