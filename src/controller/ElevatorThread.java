@@ -47,12 +47,15 @@ public class ElevatorThread implements Runnable{
 	public void run () {
 		try{
 			while (true){
-				while (!elevatorOrders.isEmpty ()){
+				while (emergencyOrders.isEmpty () && !elevatorOrders.isEmpty ()){
 					currentOrder = getNextOrder ();
+					move (currentOrder.moveToFloor ());
+				}
+				while (!emergencyOrders.isEmpty ()){
+					currentOrder = getNextEmergencyOrder ();
 					if (currentOrder.moveToFloor () == STOP_FLOOR)
 						stop ();
-					else
-						move (currentOrder.moveToFloor ());
+					move (currentOrder.moveToFloor ());
 				}
 			}
 		}catch (Exception e){
@@ -107,7 +110,6 @@ public class ElevatorThread implements Runnable{
 			while (el.whereIs () > floor){
 				if (!emergencyOrders.isEmpty ()){
 					elevatorOrders.addFirst (new InsideOrder (-1, floor));
-					elevatorOrders.addFirst (emergencyOrders.poll ());
 					return false;
 				}else
 					m.down ();
@@ -116,7 +118,6 @@ public class ElevatorThread implements Runnable{
 			while (el.whereIs () < floor){
 				if (!emergencyOrders.isEmpty ()){
 					elevatorOrders.addFirst (new InsideOrder (-1, floor));
-					elevatorOrders.addFirst (emergencyOrders.poll ());
 					return false;
 				}else
 					m.up ();
@@ -159,54 +160,64 @@ public class ElevatorThread implements Runnable{
 	public Order getNextOrder (){
 		return elevatorOrders.poll ();
 	}
+	
+	public Order getNextEmergencyOrder (){
+		return emergencyOrders.poll ();
+	}
 
 	public void addOrder (Order o) throws RemoteException{
 		if (o instanceof FloorOrder) {
-			if (!elevatorOrders.isEmpty()) {
-				if (elevatorOrders.peekLast().compareTo(o) == 1) {
-					System.out.println("Duplicate FloorOrder, not added to the queue");
-					return;
-				}
-			}
-			elevatorOrders.addLast(o);
+			if (!checkForDuplicate (o, elevatorOrders.peekLast ()))
+				elevatorOrders.addLast(o);
 		} else {
-			if (!elevatorOrders.isEmpty()) {
-				if (elevatorOrders.peekFirst().compareTo(o) == 1) {
-					System.out.println("Duplicate InsideOrder, not added to the queue");
-					return;
-				}
-			}
+			if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
+				return;
 			if (o.moveToFloor () == STOP_FLOOR)
 				emergencyOrders.addFirst (o);
 			else if (o.emergency){
-				Stack<Order> temp = new Stack<Order> ();
 				boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
 				if (emergencyOrders.isEmpty ()){
 					emergencyOrders.addFirst (o);
 					return;
 				}
-				Order cur = emergencyOrders.getFirst ();
-				if (goingUp){
-					while (!emergencyOrders.isEmpty () && cur.getDestination () < o.getDestination ()){
-						temp.push (emergencyOrders.poll ());
-					}
-					emergencyOrders.addFirst (o);
-					while (!temp.isEmpty ())
-						emergencyOrders.addFirst (temp.pop ());
-				} else{
-					while (!emergencyOrders.isEmpty () && cur.getDestination () > o.getDestination ()){
-						temp.push (emergencyOrders.poll ());
-					}
-					emergencyOrders.addFirst (o);
-					while (!temp.isEmpty ())
-						emergencyOrders.addFirst (temp.pop ());
-				}
+				addEmergencyOrder (o, goingUp);
 				emergencyOrders.addLast (o);
 			}else
 				elevatorOrders.addFirst (o);
 		}
 	}
 
+	private boolean checkForDuplicate (Order o, Order compOrder) {
+		if (!elevatorOrders.isEmpty()) {
+			if (compOrder.compareTo(o) == 1) {
+				System.out.println("Duplicate Order, not added to the queue");
+				return true;
+			}
+		}
+		return false;
+	}
+	private void addEmergencyOrder (Order o, boolean goingUp) {
+		Stack<Order> temp = new Stack<Order> ();
+		Order cur = emergencyOrders.getFirst ();
+		if (goingUp){
+			while (!emergencyOrders.isEmpty () && cur.getDestination () < o.getDestination ()){
+				temp.push (emergencyOrders.poll ());
+				if (!emergencyOrders.isEmpty ())
+					cur = emergencyOrders.peek ();
+			}
+			emergencyOrders.addFirst (o);
+			while (!temp.isEmpty ())
+				emergencyOrders.addFirst (temp.pop ());
+		} else{
+			while (!emergencyOrders.isEmpty () && cur.getDestination () > o.getDestination ()){
+				temp.push (emergencyOrders.poll ());
+			}
+			emergencyOrders.addFirst (o);
+			while (!temp.isEmpty ())
+				emergencyOrders.addFirst (temp.pop ());
+		}
+		
+	}
 	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;
 	}
