@@ -4,6 +4,8 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import Orders.FloorOrder;
@@ -122,6 +124,36 @@ public class ElevatorThread implements Runnable{
 		m.stop ();
 		return true;
 	}
+	
+	public Comparator<Order> getGoingUpComparator (){
+		return new Comparator<Order> (){
+
+			@Override
+			public int compare (Order o1, Order o2) {
+				if (o1.moveToFloor () < o2.moveToFloor ())
+					return 1;
+				else if (o1.moveToFloor () > o2.moveToFloor ())
+					return -1;
+				return 0;
+			}
+			
+		};
+	}
+	
+	public Comparator<Order> getGoingDownComparator (){
+		return new Comparator<Order> (){
+
+			@Override
+			public int compare (Order o1, Order o2) {
+				if (o1.moveToFloor () > o2.moveToFloor ())
+					return 1;
+				else if (o1.moveToFloor () < o2.moveToFloor ())
+					return -1;
+				return 0;
+			}
+			
+		};
+	}
 
 	public Order getNextOrder (){
 		return elevatorOrders.poll ();
@@ -143,8 +175,10 @@ public class ElevatorThread implements Runnable{
 					return;
 				}
 			}
-			if (o.moveToFloor () == STOP_FLOOR || o.emergency)
+			if (o.moveToFloor () == STOP_FLOOR)
 				emergencyOrders.addFirst (o);
+			else if (o.emergency)
+				emergencyOrders.addLast (o);
 			else
 				elevatorOrders.addFirst (o);
 		}

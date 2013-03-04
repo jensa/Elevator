@@ -1,9 +1,14 @@
 package controller;
 
+import java.applet.Applet;
+import java.applet.AudioClip;
 import java.awt.event.ActionEvent;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.io.File;
 import java.io.Serializable;
 
 import Orders.FloorOrder;
@@ -135,6 +140,7 @@ public class ElevatorController implements Serializable{
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
+//		playMuzak ();
 		while (true){
 			while (!elevatorOrders.isEmpty ()){
 				Order o = elevatorOrders.poll ();
@@ -144,6 +150,19 @@ public class ElevatorController implements Serializable{
 					handleFloorOrder ((FloorOrder) o);
 			}
 		}
+	}
+
+	private void playMuzak () {
+		URL soundPath = null;
+		try {
+			File f = new File ("loop.wav");
+			soundPath = f.toURI ().toURL ();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		}
+		AudioClip muzak = Applet.newAudioClip(soundPath);
+		muzak.loop ();
+		
 	}
 
 	private void handleFloorOrder (FloorOrder o) {
