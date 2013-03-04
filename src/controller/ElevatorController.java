@@ -195,8 +195,28 @@ public class ElevatorController implements Serializable{
 				}
 			}
 		}
-		if (closestElevator > -1)
+		if (closestElevator > -1) {
 			elevatorThreads[closestElevator].addOrder (o);
+		} else {
+			int minDistance = Integer.MAX_VALUE;
+			
+			for (int i = 0; i < numElevators; i++) {
+				int destination;
+				
+				if (elevatorThreads[i].getLastOrder() == null)
+					destination = elevatorThreads[i].getCurrentOrder().getDestination();
+				else 
+					destination = elevatorThreads[i].getLastOrder().getDestination();
+				
+				int distance = Math.abs(destination - o.getDestination());
+				
+				if (distance < minDistance) {
+					closestElevator = i;
+					minDistance = distance; 
+				}
+			}
+			elevatorThreads[closestElevator].addOrder (o);
+		}
 	}
 
 	private boolean elevatorIsOnFloor (int floor, double d) {

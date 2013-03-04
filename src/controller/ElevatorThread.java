@@ -40,7 +40,7 @@ public class ElevatorThread implements Runnable{
 		bing = Applet.newAudioClip(soundPath);
 	}
 	/**
-	 * Runs this televator thread, checking for new orders added to it
+	 * Runs this elevator thread, checking for new orders added to it
 	 */
 	@Override
 	public void run () {
@@ -204,8 +204,11 @@ public class ElevatorThread implements Runnable{
 		return movingToFloor;
 	}
 
-	public Order getCurrentOrder() {
+	public Order getCurrentOrder () {
 		return currentOrder;
 	}
 
+	public Order getLastOrder () {
+		return elevatorOrders.peekLast();
+	}
 }

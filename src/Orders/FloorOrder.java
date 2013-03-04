@@ -26,4 +26,9 @@ public class FloorOrder extends Order {
 		else
 			return 0;
 	}
+
+	@Override
+	public int getDestination() {
+		return floor;
+	}
 }

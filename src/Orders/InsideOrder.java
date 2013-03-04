@@ -27,4 +27,9 @@ public class InsideOrder extends Order{
 		else
 			return 0;
 	}
+
+	@Override
+	public int getDestination() {
+		return destination;
+	}
 }
