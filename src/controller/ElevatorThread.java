@@ -1,16 +1,10 @@
 package controller;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.concurrent.ConcurrentLinkedDeque;
-
-import javax.sound.sampled.AudioFileFormat;
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.UnsupportedAudioFileException;
 
 import Orders.FloorOrder;
 import Orders.InsideOrder;
@@ -21,7 +15,7 @@ import elevator.rmi.Motor;
 import java.applet.*;
 
 public class ElevatorThread implements Runnable{
-	private static final int STOP_FLOOR = 32000;
+	public static final int STOP_FLOOR = 32000;
 	RMI controller;
 	int id;
 	private Order currentOrder;
@@ -40,10 +34,12 @@ public class ElevatorThread implements Runnable{
 			soundPath = f.toURI ().toURL ();
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
-		} // Get the Sound URL
+		}
 		bing = Applet.newAudioClip(soundPath);
 	}
-
+	/**
+	 * Runs this televator thread, checking for new orders added to it
+	 */
 	@Override
 	public void run () {
 		try{
@@ -60,14 +56,21 @@ public class ElevatorThread implements Runnable{
 			e.printStackTrace ();
 		}
 	}
-
+	/**
+	 * Stop elevator and clear all existing orders
+	 * @throws RemoteException
+	 */
 	private void stop () throws RemoteException {
 		controller.getMotor (id).stop ();
 		elevatorOrders.clear ();
 		emergencyOrders.clear ();
 		
 	}
-
+	/**
+	 * Move elevator to the specified floor
+	 * @param floor
+	 * @throws RemoteException
+	 */
 	private void move (int floor) throws RemoteException{
 		setIsMoving (true);
 		Motor m = controller.getMotor (id);
@@ -79,7 +82,11 @@ public class ElevatorThread implements Runnable{
 			setIsMoving (false);
 		}
 	}
-
+	/**
+	 * Open the elevator door and play a nice sound, and close it after a time
+	 * TODO: Door opening time should be adjusted when velocity is changed
+	 * @throws RemoteException
+	 */
 	private void openDoor () throws RemoteException{
 		controller.getDoor (id).open ();
 		bing.play ();
@@ -90,7 +97,7 @@ public class ElevatorThread implements Runnable{
 		}
 		controller.getDoor (id).close ();
 	}
-
+	
 	private boolean moveToFloor (int floor, Motor m, Elevator el) throws RemoteException{
 		setMovingToFloor (floor);
 		if (el.whereIs () > floor){

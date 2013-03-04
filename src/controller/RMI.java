@@ -19,8 +19,7 @@ import elevator.rmi.Scale;
 import elevator.rmi.Scales;
 
 public class RMI implements Serializable, Remote{
-//	public static final String LOCALHOST = "127.0.0.1";
-	
+	private static final long serialVersionUID = 1L;
 	public GetAll get;
 	
 	public RMI (){

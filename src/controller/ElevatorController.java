@@ -9,9 +9,6 @@ import java.io.Serializable;
 import Orders.FloorOrder;
 import Orders.InsideOrder;
 import Orders.Order;
-import elevator.rmi.Door;
-import elevator.rmi.Elevator;
-import elevator.rmi.Motor;
 import elevator.rmi.RemoteActionListener;
 
 public class ElevatorController implements Serializable{
@@ -108,7 +105,11 @@ public class ElevatorController implements Serializable{
 		else
 			overSpeedLimit = false;
 	}
-
+	/**
+	 * Update the position tracking arrays with a new position for the specified elevator
+	 * @param elevator
+	 * @param e
+	 */
 	protected void elevatorMoved (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
 		double position = Double.parseDouble (command.split (" ")[2]);
@@ -184,16 +185,18 @@ public class ElevatorController implements Serializable{
 	}
 
 	private void handleInsideOrder (InsideOrder o) {
+		if (o.destination == ElevatorThread.STOP_FLOOR && !elevatorThreads[o.elevator].isMoving ())
+			return;
 		//Find out if this order is 'on the way', if so, make it an emergency order
 		//so that the elevator will go there before its current destination
 		double curPos = currentPositions[o.elevator];
 		ElevatorThread elevator = elevatorThreads[o.elevator];
-		if (elevator.isMoving () && curPos > lastPositions[o.elevator]){
+		if (curPos > lastPositions[o.elevator]){
 			//going up
 			//if the floor wanted is on the way, we'll give priority to this order
 			if (o.destination > curPos && o.destination < elevator.getMovingToFloor ())
 				o.emergency = true;
-		} else if (elevator.isMoving () && curPos < lastPositions[o.elevator]){
+		} else if (curPos < lastPositions[o.elevator]){
 			//going down
 			if (o.destination < curPos && o.destination > elevator.getMovingToFloor ())
 				o.emergency = true;
