@@ -140,7 +140,7 @@ public class ElevatorController implements Serializable{
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
-//		playMuzak ();
+		playMuzak ();
 		while (true){
 			while (!elevatorOrders.isEmpty ()){
 				Order o = elevatorOrders.poll ();
@@ -165,7 +165,7 @@ public class ElevatorController implements Serializable{
 		
 	}
 
-	private void handleFloorOrder (FloorOrder o) {
+	private void handleFloorOrder (FloorOrder o) throws RemoteException {
 		for (int i = 0; i < numElevators; i++) {
 			if (elevatorThreads[i].isMoving ()) {
 				if (o.compareTo(elevatorThreads[i].getCurrentOrder()) == 1) {
@@ -223,7 +223,7 @@ public class ElevatorController implements Serializable{
 		return d > floor-0.001 && d < floor+0.001;
 	}
 
-	private void handleInsideOrder (InsideOrder o) {
+	private void handleInsideOrder (InsideOrder o) throws RemoteException {
 		if (o.destination == ElevatorThread.STOP_FLOOR && !elevatorThreads[o.elevator].isMoving ())
 			return;
 		//Find out if this order is 'on the way', if so, make it an emergency order

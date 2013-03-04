@@ -6,6 +6,7 @@ import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import Orders.FloorOrder;
@@ -159,7 +160,7 @@ public class ElevatorThread implements Runnable{
 		return elevatorOrders.poll ();
 	}
 
-	public void addOrder (Order o){
+	public void addOrder (Order o) throws RemoteException{
 		if (o instanceof FloorOrder) {
 			if (!elevatorOrders.isEmpty()) {
 				if (elevatorOrders.peekLast().compareTo(o) == 1) {
@@ -177,9 +178,31 @@ public class ElevatorThread implements Runnable{
 			}
 			if (o.moveToFloor () == STOP_FLOOR)
 				emergencyOrders.addFirst (o);
-			else if (o.emergency)
+			else if (o.emergency){
+				Stack<Order> temp = new Stack<Order> ();
+				boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
+				if (emergencyOrders.isEmpty ()){
+					emergencyOrders.addFirst (o);
+					return;
+				}
+				Order cur = emergencyOrders.getFirst ();
+				if (goingUp){
+					while (!emergencyOrders.isEmpty () && cur.getDestination () < o.getDestination ()){
+						temp.push (emergencyOrders.poll ());
+					}
+					emergencyOrders.addFirst (o);
+					while (!temp.isEmpty ())
+						emergencyOrders.addFirst (temp.pop ());
+				} else{
+					while (!emergencyOrders.isEmpty () && cur.getDestination () > o.getDestination ()){
+						temp.push (emergencyOrders.poll ());
+					}
+					emergencyOrders.addFirst (o);
+					while (!temp.isEmpty ())
+						emergencyOrders.addFirst (temp.pop ());
+				}
 				emergencyOrders.addLast (o);
-			else
+			}else
 				elevatorOrders.addFirst (o);
 		}
 	}
