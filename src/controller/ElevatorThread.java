@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
@@ -70,7 +71,7 @@ public class ElevatorThread implements Runnable{
 		controller.getMotor (id).stop ();
 		elevatorOrders.clear ();
 		emergencyOrders.clear ();
-		
+
 	}
 	/**
 	 * Move elevator to the specified floor
@@ -104,7 +105,7 @@ public class ElevatorThread implements Runnable{
 		}
 		controller.getDoor (id).close ();
 	}
-	
+
 	private boolean getDestination (int floor, Motor m, Elevator el) throws RemoteException{
 		setMovingToFloor (floor);
 		if (el.whereIs () > floor){
@@ -127,7 +128,7 @@ public class ElevatorThread implements Runnable{
 		m.stop ();
 		return true;
 	}
-	
+
 	public Comparator<Order> getGoingUpComparator (){
 		return new Comparator<Order> (){
 
@@ -139,10 +140,10 @@ public class ElevatorThread implements Runnable{
 					return -1;
 				return 0;
 			}
-			
+
 		};
 	}
-	
+
 	public Comparator<Order> getGoingDownComparator (){
 		return new Comparator<Order> (){
 
@@ -154,20 +155,20 @@ public class ElevatorThread implements Runnable{
 					return -1;
 				return 0;
 			}
-			
+
 		};
 	}
 
 	public Order getNextOrder (){
 		return elevatorOrders.poll ();
 	}
-	
+
 	public Order getNextEmergencyOrder (){
 		return emergencyOrders.poll ();
 	}
 
 	public void addOrder (Order o) throws RemoteException{
-		if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
+		if (checkForDuplicate (o, elevatorOrders))
 			return;
 		if (o.getDestination () == STOP_FLOOR)
 			emergencyOrders.addFirst (o);
@@ -183,16 +184,31 @@ public class ElevatorThread implements Runnable{
 			elevatorOrders.addFirst (o);
 	}
 
-	private boolean checkForDuplicate (Order o, Order compOrder) {
-		if (!elevatorOrders.isEmpty()) {
-			if (compOrder.compareTo(o) == 0) {
-				System.out.println("Duplicate Order, not added to the queue");
-				return true;
-			}
+	private boolean checkForDuplicate (Order o, ConcurrentLinkedDeque<Order> queue) {
+
+		boolean isDuplicate = false;
+		Iterator<Order> it = queue.iterator();
+
+		if (currentOrder != null) {
+			isDuplicate = (currentOrder.compareTo(o) == 1);
 		}
+		
+		while (it.hasNext()) {
+			if (o.compareTo(it.next()) == 1)
+				isDuplicate = true;
+		}
+
+		if (isDuplicate) {
+			System.out.println("Duplicate Order, not added to the queue");
+			return true;
+		}
+
 		return false;
 	}
 	private void addEmergencyOrder (Order o, boolean goingUp) {
+		if (checkForDuplicate (o, emergencyOrders))
+			return;
+
 		Stack<Order> temp = new Stack<Order> ();
 		Order cur = emergencyOrders.getFirst ();
 		if (goingUp){
@@ -212,7 +228,7 @@ public class ElevatorThread implements Runnable{
 			while (!temp.isEmpty ())
 				emergencyOrders.addFirst (temp.pop ());
 		}
-		
+
 	}
 	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;
@@ -225,11 +241,11 @@ public class ElevatorThread implements Runnable{
 	public synchronized void setIsMoving (boolean isMo){
 		isMoving = isMo;
 	}
-	
+
 	public synchronized void setMovingToFloor (int fl){
 		movingToFloor = fl;
 	}
-	
+
 	public synchronized int getMovingToFloor (){
 		return movingToFloor;
 	}
