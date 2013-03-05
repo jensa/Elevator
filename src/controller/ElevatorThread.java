@@ -4,7 +4,6 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -90,14 +89,15 @@ public class ElevatorThread implements Runnable{
 	}
 	/**
 	 * Open the elevator door and play a nice sound, and close it after a time
-	 * TODO: Door opening time should be adjusted when velocity is changed
 	 * @throws RemoteException
 	 */
 	private void openDoor () throws RemoteException{
 		controller.getDoor (id).open ();
 		bing.play ();
 		try {
-			Thread.sleep (2000);
+			double velocity = controller.getVelocity() * 100000;
+			int sleeptime = (int) (30000/velocity);
+			Thread.sleep (sleeptime);
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
 		}
