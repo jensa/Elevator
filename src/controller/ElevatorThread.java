@@ -54,7 +54,8 @@ public class ElevatorThread implements Runnable{
 					currentOrder = getNextEmergencyOrder ();
 					if (currentOrder.moveToFloor () == STOP_FLOOR)
 						stop ();
-					move (currentOrder.moveToFloor ());
+					else
+						move (currentOrder.moveToFloor ());
 				}
 			}
 		}catch (Exception e){
@@ -66,6 +67,7 @@ public class ElevatorThread implements Runnable{
 	 * @throws RemoteException
 	 */
 	private void stop () throws RemoteException {
+		System.out.println ("stopping!");
 		controller.getMotor (id).stop ();
 		elevatorOrders.clear ();
 		emergencyOrders.clear ();
