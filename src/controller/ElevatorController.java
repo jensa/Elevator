@@ -216,10 +216,25 @@ public class ElevatorController implements Serializable{
 				}
 			}
 			o.emergency = destinationIsOnTheWay (closestElevator, o.floor);
+			System.out.println (o.emergency);
 			elevatorThreads[closestElevator].addOrder (o);
 		}
 	}
 
+	
+
+	private boolean elevatorIsOnFloor (int floor, double d) {
+		return d > floor-0.001 && d < floor+0.001;
+	}
+
+	private void handleInsideOrder (InsideOrder o) throws RemoteException {
+		if (o.destination == ElevatorThread.STOP_FLOOR && !elevatorThreads[o.elevator].isMoving ())
+			return;
+		//Find out if this order is 'on the way', if so, make it an emergency order
+		//so that the elevator will go there before its current destination
+		o.emergency = destinationIsOnTheWay (o.elevator, o.destination);
+		elevatorThreads[o.elevator].addOrder(o);
+	}
 	private boolean destinationIsOnTheWay (int elevator, int destination) {
 		double curPos = currentPositions[elevator];
 		ElevatorThread elevatorThread = elevatorThreads[elevator];
@@ -234,19 +249,6 @@ public class ElevatorController implements Serializable{
 				return true;
 		}
 		return false;
-	}
-
-	private boolean elevatorIsOnFloor (int floor, double d) {
-		return d > floor-0.001 && d < floor+0.001;
-	}
-
-	private void handleInsideOrder (InsideOrder o) throws RemoteException {
-		if (o.destination == ElevatorThread.STOP_FLOOR && !elevatorThreads[o.elevator].isMoving ())
-			return;
-		//Find out if this order is 'on the way', if so, make it an emergency order
-		//so that the elevator will go there before its current destination
-		o.emergency = destinationIsOnTheWay (o.elevator, o.destination);
-		elevatorThreads[o.elevator].addOrder(o);
 	}
 
 	public static void main(String[] args){

@@ -67,7 +67,6 @@ public class ElevatorThread implements Runnable{
 	 * @throws RemoteException
 	 */
 	private void stop () throws RemoteException {
-		System.out.println ("stopping!");
 		controller.getMotor (id).stop ();
 		elevatorOrders.clear ();
 		emergencyOrders.clear ();
@@ -168,25 +167,20 @@ public class ElevatorThread implements Runnable{
 	}
 
 	public void addOrder (Order o) throws RemoteException{
-		if (o instanceof FloorOrder) {
-			if (!checkForDuplicate (o, elevatorOrders.peekLast ()))
-				elevatorOrders.addLast(o);
-		} else {
-			if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
-				return;
-			if (o.moveToFloor () == STOP_FLOOR)
+		if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
+			return;
+		if (o.moveToFloor () == STOP_FLOOR)
+			emergencyOrders.addFirst (o);
+		else if (o.emergency){
+			boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
+			if (emergencyOrders.isEmpty ()){
 				emergencyOrders.addFirst (o);
-			else if (o.emergency){
-				boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
-				if (emergencyOrders.isEmpty ()){
-					emergencyOrders.addFirst (o);
-					return;
-				}
-				addEmergencyOrder (o, goingUp);
-				emergencyOrders.addLast (o);
-			}else
-				elevatorOrders.addFirst (o);
-		}
+				return;
+			}
+			addEmergencyOrder (o, goingUp);
+			emergencyOrders.addLast (o);
+		}else
+			elevatorOrders.addFirst (o);
 	}
 
 	private boolean checkForDuplicate (Order o, Order compOrder) {
