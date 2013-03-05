@@ -126,7 +126,8 @@ public class ElevatorController implements Serializable{
 	private void floorButtonPressed (int floor, ActionEvent e) throws RemoteException {
 		// find the nearest? elevator that's not occupied and send it to the floor
 		String command = e.getActionCommand ();
-		FloorOrder order = new FloorOrder (floor);
+		int direction = Integer.parseInt (command.split (" ")[2]);
+		FloorOrder order = new FloorOrder (floor, direction > 0);
 		elevatorOrders.addLast (order);
 	}
 
