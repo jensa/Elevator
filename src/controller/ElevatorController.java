@@ -215,8 +215,25 @@ public class ElevatorController implements Serializable{
 					minDistance = distance; 
 				}
 			}
+			o.emergency = destinationIsOnTheWay (closestElevator, o.floor);
 			elevatorThreads[closestElevator].addOrder (o);
 		}
+	}
+
+	private boolean destinationIsOnTheWay (int elevator, int destination) {
+		double curPos = currentPositions[elevator];
+		ElevatorThread elevatorThread = elevatorThreads[elevator];
+		if (curPos > lastPositions[elevator]){
+			//going up
+			//if the floor wanted is on the way, we'll give priority to this order
+			if (destination > curPos && destination < elevatorThread.getMovingToFloor ())
+				return true;
+		} else if (curPos < lastPositions[elevator]){
+			//going down
+			if (destination < curPos && destination > elevatorThread.getMovingToFloor ())
+				return true;
+		}
+		return false;
 	}
 
 	private boolean elevatorIsOnFloor (int floor, double d) {
@@ -228,18 +245,7 @@ public class ElevatorController implements Serializable{
 			return;
 		//Find out if this order is 'on the way', if so, make it an emergency order
 		//so that the elevator will go there before its current destination
-		double curPos = currentPositions[o.elevator];
-		ElevatorThread elevator = elevatorThreads[o.elevator];
-		if (curPos > lastPositions[o.elevator]){
-			//going up
-			//if the floor wanted is on the way, we'll give priority to this order
-			if (o.destination > curPos && o.destination < elevator.getMovingToFloor ())
-				o.emergency = true;
-		} else if (curPos < lastPositions[o.elevator]){
-			//going down
-			if (o.destination < curPos && o.destination > elevator.getMovingToFloor ())
-				o.emergency = true;
-		}
+		o.emergency = destinationIsOnTheWay (o.elevator, o.destination);
 		elevatorThreads[o.elevator].addOrder(o);
 	}
 
