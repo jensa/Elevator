@@ -12,7 +12,5 @@ public abstract class Order implements Comparable<Order> {
 		return emergency;
 	}
 	
-	public abstract int moveToFloor ();
-	
 	public abstract int getDestination ();
 }

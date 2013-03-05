@@ -2,18 +2,13 @@ package Orders;
 
 public class InsideOrder extends Order{
 	
-	public int elevator;
 	public int destination;
+	public int elevator;
 	
 	public InsideOrder (int ele, int dest){
-		elevator = ele;
 		destination = dest;
+		elevator = ele;
 		isInsideOrder = true;
-	}
-	
-	@Override
-	public int moveToFloor (){
-		return destination;
 	}
 
 	@Override
@@ -22,10 +17,12 @@ public class InsideOrder extends Order{
 			return -1;
 		InsideOrder io = (InsideOrder) o;
 		
-		if (elevator == io.elevator && destination == io.destination)
-			return 1;
-		else
+		if (destination == io.destination)
 			return 0;
+		else if (destination < io.destination)
+			return -1;
+		else
+			return 1;
 	}
 
 	@Override

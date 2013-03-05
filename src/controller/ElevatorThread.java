@@ -48,14 +48,18 @@ public class ElevatorThread implements Runnable{
 			while (true){
 				while (emergencyOrders.isEmpty () && !elevatorOrders.isEmpty ()){
 					currentOrder = getNextOrder ();
-					move (currentOrder.moveToFloor ());
+					move (currentOrder.getDestination ());
 				}
 				while (!emergencyOrders.isEmpty ()){
 					currentOrder = getNextEmergencyOrder ();
-					if (currentOrder.moveToFloor () == STOP_FLOOR)
+					if (currentOrder.getDestination () == STOP_FLOOR)
 						stop ();
+<<<<<<< Updated upstream
 					else
 						move (currentOrder.moveToFloor ());
+=======
+					move (currentOrder.getDestination ());
+>>>>>>> Stashed changes
 				}
 			}
 		}catch (Exception e){
@@ -70,7 +74,7 @@ public class ElevatorThread implements Runnable{
 		controller.getMotor (id).stop ();
 		elevatorOrders.clear ();
 		emergencyOrders.clear ();
-		
+
 	}
 	/**
 	 * Move elevator to the specified floor
@@ -104,7 +108,7 @@ public class ElevatorThread implements Runnable{
 		}
 		controller.getDoor (id).close ();
 	}
-	
+
 	private boolean moveToFloor (int floor, Motor m, Elevator el) throws RemoteException{
 		setMovingToFloor (floor);
 		if (el.whereIs () > floor){
@@ -127,46 +131,47 @@ public class ElevatorThread implements Runnable{
 		m.stop ();
 		return true;
 	}
-	
+
 	public Comparator<Order> getGoingUpComparator (){
 		return new Comparator<Order> (){
 
 			@Override
 			public int compare (Order o1, Order o2) {
-				if (o1.moveToFloor () < o2.moveToFloor ())
+				if (o1.getDestination () < o2.getDestination ())
 					return 1;
-				else if (o1.moveToFloor () > o2.moveToFloor ())
+				else if (o1.getDestination () > o2.getDestination ())
 					return -1;
 				return 0;
 			}
-			
+
 		};
 	}
-	
+
 	public Comparator<Order> getGoingDownComparator (){
 		return new Comparator<Order> (){
 
 			@Override
 			public int compare (Order o1, Order o2) {
-				if (o1.moveToFloor () > o2.moveToFloor ())
+				if (o1.getDestination () > o2.getDestination ())
 					return 1;
-				else if (o1.moveToFloor () < o2.moveToFloor ())
+				else if (o1.getDestination () < o2.getDestination ())
 					return -1;
 				return 0;
 			}
-			
+
 		};
 	}
 
 	public Order getNextOrder (){
 		return elevatorOrders.poll ();
 	}
-	
+
 	public Order getNextEmergencyOrder (){
 		return emergencyOrders.poll ();
 	}
 
 	public void addOrder (Order o) throws RemoteException{
+<<<<<<< Updated upstream
 		if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
 			return;
 		if (o.moveToFloor () == STOP_FLOOR)
@@ -174,6 +179,15 @@ public class ElevatorThread implements Runnable{
 		else if (o.emergency){
 			boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
 			if (emergencyOrders.isEmpty ()){
+=======
+		if (o instanceof FloorOrder) {
+			if (!checkForDuplicate (o, elevatorOrders.peekLast ()))
+				elevatorOrders.addLast(o);
+		} else {
+			if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
+				return;
+			if (o.getDestination () == STOP_FLOOR)
+>>>>>>> Stashed changes
 				emergencyOrders.addFirst (o);
 				return;
 			}
@@ -185,7 +199,7 @@ public class ElevatorThread implements Runnable{
 
 	private boolean checkForDuplicate (Order o, Order compOrder) {
 		if (!elevatorOrders.isEmpty()) {
-			if (compOrder.compareTo(o) == 1) {
+			if (compOrder.compareTo(o) == 0) {
 				System.out.println("Duplicate Order, not added to the queue");
 				return true;
 			}
@@ -212,7 +226,7 @@ public class ElevatorThread implements Runnable{
 			while (!temp.isEmpty ())
 				emergencyOrders.addFirst (temp.pop ());
 		}
-		
+
 	}
 	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;
@@ -225,11 +239,11 @@ public class ElevatorThread implements Runnable{
 	public synchronized void setIsMoving (boolean isMo){
 		isMoving = isMo;
 	}
-	
+
 	public synchronized void setMovingToFloor (int fl){
 		movingToFloor = fl;
 	}
-	
+
 	public synchronized int getMovingToFloor (){
 		return movingToFloor;
 	}

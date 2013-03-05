@@ -2,17 +2,10 @@ package Orders;
 
 public class FloorOrder extends Order {
 	public int floor;
-	public boolean goingUp;
 	
-	public FloorOrder (int fl, boolean gu){
+	public FloorOrder (int fl){
 		floor = fl;
-		goingUp = gu;
 		isInsideOrder = false;
-	}
-	
-	@Override
-	public int moveToFloor (){
-		return floor;
 	}
 
 	@Override
@@ -21,10 +14,12 @@ public class FloorOrder extends Order {
 			return -1;
 		FloorOrder fo = (FloorOrder) o; 
 		
-		if (floor == fo.floor && goingUp == fo.goingUp)
-			return 1;
-		else
+		if (floor == fo.floor)
 			return 0;
+		else if (floor < fo.floor)
+			return -1;
+		else
+			return 1;
 	}
 
 	@Override
