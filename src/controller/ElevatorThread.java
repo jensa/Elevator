@@ -179,7 +179,7 @@ public class ElevatorThread implements Runnable{
 				return;
 			}
 			addEmergencyOrder (o, goingUp);
-			emergencyOrders.addLast (o);
+//			emergencyOrders.addLast (o);
 		}else
 			elevatorOrders.addFirst (o);
 	}
@@ -228,6 +228,8 @@ public class ElevatorThread implements Runnable{
 			while (!temp.isEmpty ())
 				emergencyOrders.addFirst (temp.pop ());
 		}
+
+		System.out.println (emergencyOrders.toString ()+" "+emergencyOrders.size ());
 
 	}
 	public ConcurrentLinkedDeque<Order> getOrders (){

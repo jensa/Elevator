@@ -133,7 +133,6 @@ public class ElevatorController implements Serializable{
 
 	private void insideButtonPressed (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
-		System.out.println (command);
 		int destination = Integer.parseInt (command.split (" ")[2]);
 		InsideOrder order = new InsideOrder (elevator, destination);
 		elevatorOrders.addLast (order);
@@ -215,8 +214,10 @@ public class ElevatorController implements Serializable{
 					minDistance = distance; 
 				}
 			}
-			o.emergency = destinationIsOnTheWay (closestElevator, o.floor);
-			System.out.println (o.emergency);
+			boolean onTheWay = destinationIsOnTheWay (closestElevator, o.floor);
+			boolean goingUp = currentPositions[closestElevator] > lastPositions[closestElevator];
+			if (onTheWay && goingUp == o.goingUp)
+				o.emergency = true;
 			elevatorThreads[closestElevator].addOrder (o);
 		}
 	}
