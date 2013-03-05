@@ -16,13 +16,11 @@ public class InsideOrder extends Order{
 		if (!(o instanceof InsideOrder))
 			return -1;
 		InsideOrder io = (InsideOrder) o;
-		
-		if (destination == io.destination)
-			return 0;
-		else if (destination < io.destination)
-			return -1;
-		else
+
+		if (elevator == io.elevator && destination == io.destination)
 			return 1;
+		else
+			return 0;
 	}
 
 	@Override

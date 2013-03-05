@@ -48,14 +48,14 @@ public class ElevatorThread implements Runnable{
 			while (true){
 				while (emergencyOrders.isEmpty () && !elevatorOrders.isEmpty ()){
 					currentOrder = getNextOrder ();
-					move (currentOrder.moveToFloor ());
+					move (currentOrder.getDestination ());
 				}
 				while (!emergencyOrders.isEmpty ()){
 					currentOrder = getNextEmergencyOrder ();
-					if (currentOrder.moveToFloor () == STOP_FLOOR)
+					if (currentOrder.getDestination () == STOP_FLOOR)
 						stop ();
 					else
-						move (currentOrder.moveToFloor ());
+						move (currentOrder.getDestination ());
 				}
 			}
 		}catch (Exception e){
@@ -81,7 +81,7 @@ public class ElevatorThread implements Runnable{
 		setIsMoving (true);
 		Motor m = controller.getMotor (id);
 		Elevator el = controller.getElevator (id);
-		if (moveToFloor (floor, m, el)){
+		if (getDestination (floor, m, el)){
 			setIsMoving (false);
 			openDoor ();
 		} else{
@@ -105,7 +105,7 @@ public class ElevatorThread implements Runnable{
 		controller.getDoor (id).close ();
 	}
 	
-	private boolean moveToFloor (int floor, Motor m, Elevator el) throws RemoteException{
+	private boolean getDestination (int floor, Motor m, Elevator el) throws RemoteException{
 		setMovingToFloor (floor);
 		if (el.whereIs () > floor){
 			while (el.whereIs () > floor){
@@ -133,9 +133,9 @@ public class ElevatorThread implements Runnable{
 
 			@Override
 			public int compare (Order o1, Order o2) {
-				if (o1.moveToFloor () < o2.moveToFloor ())
+				if (o1.getDestination () < o2.getDestination ())
 					return 1;
-				else if (o1.moveToFloor () > o2.moveToFloor ())
+				else if (o1.getDestination () > o2.getDestination ())
 					return -1;
 				return 0;
 			}
@@ -148,9 +148,9 @@ public class ElevatorThread implements Runnable{
 
 			@Override
 			public int compare (Order o1, Order o2) {
-				if (o1.moveToFloor () > o2.moveToFloor ())
+				if (o1.getDestination () > o2.getDestination ())
 					return 1;
-				else if (o1.moveToFloor () < o2.moveToFloor ())
+				else if (o1.getDestination () < o2.getDestination ())
 					return -1;
 				return 0;
 			}
@@ -169,7 +169,7 @@ public class ElevatorThread implements Runnable{
 	public void addOrder (Order o) throws RemoteException{
 		if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
 			return;
-		if (o.moveToFloor () == STOP_FLOOR)
+		if (o.getDestination () == STOP_FLOOR)
 			emergencyOrders.addFirst (o);
 		else if (o.emergency){
 			boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
