@@ -127,7 +127,7 @@ public class ElevatorController implements Serializable{
 		// find the nearest? elevator that's not occupied and send it to the floor
 		String command = e.getActionCommand ();
 		int direction = Integer.parseInt (command.split (" ")[2]);
-		FloorOrder order = new FloorOrder (floor, direction > 0);
+		FloorOrder order = new FloorOrder (floor);
 		elevatorOrders.addLast (order);
 	}
 

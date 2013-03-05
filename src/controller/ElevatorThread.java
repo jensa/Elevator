@@ -185,7 +185,7 @@ public class ElevatorThread implements Runnable{
 
 	private boolean checkForDuplicate (Order o, Order compOrder) {
 		if (!elevatorOrders.isEmpty()) {
-			if (compOrder.compareTo(o) == 1) {
+			if (compOrder.compareTo(o) == 0) {
 				System.out.println("Duplicate Order, not added to the queue");
 				return true;
 			}
