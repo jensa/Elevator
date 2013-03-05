@@ -54,12 +54,8 @@ public class ElevatorThread implements Runnable{
 					currentOrder = getNextEmergencyOrder ();
 					if (currentOrder.getDestination () == STOP_FLOOR)
 						stop ();
-<<<<<<< Updated upstream
 					else
-						move (currentOrder.moveToFloor ());
-=======
-					move (currentOrder.getDestination ());
->>>>>>> Stashed changes
+						move (currentOrder.getDestination ());
 				}
 			}
 		}catch (Exception e){
@@ -171,23 +167,13 @@ public class ElevatorThread implements Runnable{
 	}
 
 	public void addOrder (Order o) throws RemoteException{
-<<<<<<< Updated upstream
 		if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
 			return;
-		if (o.moveToFloor () == STOP_FLOOR)
+		if (o.getDestination () == STOP_FLOOR)
 			emergencyOrders.addFirst (o);
 		else if (o.emergency){
 			boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
 			if (emergencyOrders.isEmpty ()){
-=======
-		if (o instanceof FloorOrder) {
-			if (!checkForDuplicate (o, elevatorOrders.peekLast ()))
-				elevatorOrders.addLast(o);
-		} else {
-			if (checkForDuplicate (o, elevatorOrders.peekFirst ()))
-				return;
-			if (o.getDestination () == STOP_FLOOR)
->>>>>>> Stashed changes
 				emergencyOrders.addFirst (o);
 				return;
 			}
