@@ -19,7 +19,8 @@ public class Tester {
 	public void testFloorOrder () throws RemoteException, InterruptedException {
 		
 		for (ElevatorThread ele : controller.getElevatorThreads()) {
-			InsideOrder io = new InsideOrder (0, ele.id);
+			InsideOrder io = new InsideOrder (ele.id-1, 0);
+			System.out.println("Moving elevator " + ele.id + " to ground floor");
 			controller.handleInsideOrder(io);
 		}
 		
@@ -51,9 +52,10 @@ public class Tester {
 	}
 	
 	private void stillMoving() throws InterruptedException {
-		Boolean stillMoving = false;
-		
+		Boolean stillMoving;
+		Thread.sleep(1000);
 		while (true) {
+			stillMoving = false;
 			for (ElevatorThread elevator : controller.getElevatorThreads ()){
 				if (elevator.isMoving()) {
 					stillMoving = true;
@@ -61,15 +63,14 @@ public class Tester {
 				}
 			}
 			if (stillMoving != true) {
+				System.out.println("No elevator is moving, starting the next test..");
 				break;
-			} else {
-				System.out.println("Some elevator is still moving");
-				Thread.sleep(1000);
 			}
 		}
 	}
 	
 	public static void main(String[] args) {
+		System.setProperty("java.security.policy","file:./rmi.policy");
 		Tester t = new Tester ();
 		try {
 			t.testFloorOrder();
