@@ -208,7 +208,7 @@ public class ElevatorController implements Serializable{
 			else 
 				destination = elevatorThreads[i].getLastOrder().getDestination();
 			System.out.println ("dest: "+destination+" odest: "+o.getDestination());
-			int distance = Math.abs(destination - o.getDestination());
+			int distance = 1+Math.abs(destination - o.getDestination());
 			boolean onTheWay = destinationIsOnTheWay (i, o.floor) && elevatorGoingUp (i) == o.goingUp;
 			if (costs[i] == 0){
 				costs[i] = distance*3;
