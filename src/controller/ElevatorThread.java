@@ -111,7 +111,10 @@ public class ElevatorThread implements Runnable{
 		if (el.whereIs () > floor){
 			while (el.whereIs () > floor){
 				if (!emergencyOrders.isEmpty ()){
-					elevatorOrders.addFirst (new InsideOrder (-1, floor));
+					Order o = new InsideOrder (-1, floor);
+					o.emergency = currentOrder.emergency;
+					currentOrder = null;
+					addOrder (o);
 					return false;
 				}else
 					m.down ();
@@ -119,7 +122,10 @@ public class ElevatorThread implements Runnable{
 		} else if (el.whereIs () < floor){
 			while (el.whereIs () < floor){
 				if (!emergencyOrders.isEmpty ()){
-					elevatorOrders.addFirst (new InsideOrder (-1, floor));
+					Order o = new InsideOrder (-1, floor);
+					o.emergency = currentOrder.emergency;
+					currentOrder = null;
+					addOrder (o);
 					return false;
 				}else
 					m.up ();
@@ -127,36 +133,6 @@ public class ElevatorThread implements Runnable{
 		}
 		m.stop ();
 		return true;
-	}
-
-	public Comparator<Order> getGoingUpComparator (){
-		return new Comparator<Order> (){
-
-			@Override
-			public int compare (Order o1, Order o2) {
-				if (o1.getDestination () < o2.getDestination ())
-					return 1;
-				else if (o1.getDestination () > o2.getDestination ())
-					return -1;
-				return 0;
-			}
-
-		};
-	}
-
-	public Comparator<Order> getGoingDownComparator (){
-		return new Comparator<Order> (){
-
-			@Override
-			public int compare (Order o1, Order o2) {
-				if (o1.getDestination () > o2.getDestination ())
-					return 1;
-				else if (o1.getDestination () < o2.getDestination ())
-					return -1;
-				return 0;
-			}
-
-		};
 	}
 
 	public Order getNextOrder (){
@@ -228,8 +204,11 @@ public class ElevatorThread implements Runnable{
 			while (!temp.isEmpty ())
 				emergencyOrders.addFirst (temp.pop ());
 		}
-
-		System.out.println (emergencyOrders.toString ()+" "+emergencyOrders.size ());
+		Iterator<Order> it = emergencyOrders.iterator ();
+		System.out.print ("[");
+		while (it.hasNext ())
+			System.out.print (it.next ().getDestination ()+", ");
+		System.out.print ("]\n");
 
 	}
 	public ConcurrentLinkedDeque<Order> getOrders (){

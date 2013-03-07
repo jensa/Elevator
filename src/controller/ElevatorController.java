@@ -164,7 +164,9 @@ public class ElevatorController implements Serializable{
 		
 	}
 
-	private void handleFloorOrder (FloorOrder o) throws RemoteException {
+	public void handleFloorOrder (FloorOrder o) throws RemoteException {
+		//Check if an elevator is on the way to the requested floor
+		double[] costs = new double[numElevators];
 		for (int i = 0; i < numElevators; i++) {
 			if (elevatorThreads[i].isMoving ()) {
 				if (o.compareTo(elevatorThreads[i].getCurrentOrder()) == 1) {
@@ -173,7 +175,7 @@ public class ElevatorController implements Serializable{
 				}
 			}
 		}
-		
+		//Check if any elevator is standing still on the requested floor
 		for (int i=0;i<numElevators;i++){
 			if (!elevatorThreads[i].isMoving ()){
 				if (elevatorIsOnFloor (o.floor, currentPositions[i])){
@@ -183,52 +185,56 @@ public class ElevatorController implements Serializable{
 				}
 			}
 		}
-		int closestElevator = -1;
-		double dist = 10000000;
+		//Give a destination cost to non-moving elevators based on their distance to the requested floor
 		for (int i=0;i<numElevators;i++){
 			if (!elevatorThreads[i].isMoving ()){
 				double distToFloor = Math.abs (o.floor-currentPositions[i]);
-				if (distToFloor < dist){
-					dist = distToFloor;
-					closestElevator = i;
-				}
+				costs[i] = distToFloor;
 			}
 		}
-		if (closestElevator > -1) {
-			elevatorThreads[closestElevator].addOrder (o);
-		} else {
-			int minDistance = Integer.MAX_VALUE;
-			
-			for (int i = 0; i < numElevators; i++) {
-				int destination;
-				
-				if (elevatorThreads[i].getLastOrder() == null)
-					destination = elevatorThreads[i].getCurrentOrder().getDestination();
-				else 
-					destination = elevatorThreads[i].getLastOrder().getDestination();
-				
-				int distance = Math.abs(destination - o.getDestination());
-				
-				if (distance < minDistance) {
-					closestElevator = i;
-					minDistance = distance; 
-				}
+		//give a destination cost to moving elevators based on the distance to the requested floor from their current final destination
+		for (int i = 0; i < numElevators; i++) {
+			if (!elevatorThreads[i].isMoving ())
+				continue;
+			int destination;
+			if (elevatorThreads[i].getLastOrder() == null )
+				destination = elevatorThreads[i].getCurrentOrder().getDestination();
+			else 
+				destination = elevatorThreads[i].getLastOrder().getDestination();
+
+			int distance = Math.abs(destination - o.getDestination());
+			boolean onTheWay = destinationIsOnTheWay (i, o.floor);
+			if (costs[i] == 0){
+				costs[i] = distance*3;
+				if (onTheWay)
+					costs[i] = costs[i] *0.5;
+				else
+					costs[i] = costs[i] *1;
 			}
-			boolean onTheWay = destinationIsOnTheWay (closestElevator, o.floor);
-			boolean goingUp = currentPositions[closestElevator] > lastPositions[closestElevator];
-			if (onTheWay && goingUp == o.goingUp)
-				o.emergency = true;
-			elevatorThreads[closestElevator].addOrder (o);
 		}
+		double leastScore = Double.MAX_VALUE;
+		int closestElevator = -1;
+		for (int i=0;i<numElevators;i++){
+			if (costs[i] < leastScore){
+				closestElevator = i;
+				leastScore = costs[i];
+			}
+		}
+		boolean onTheWay = destinationIsOnTheWay (closestElevator, o.floor);
+		boolean goingUp = currentPositions[closestElevator] > lastPositions[closestElevator];
+		if (onTheWay && goingUp == o.goingUp)
+			o.emergency = true;
+		elevatorThreads[closestElevator].addOrder (o);
+
 	}
 
-	
+
 
 	private boolean elevatorIsOnFloor (int floor, double d) {
 		return d > floor-0.001 && d < floor+0.001;
 	}
 
-	private void handleInsideOrder (InsideOrder o) throws RemoteException {
+	public void handleInsideOrder (InsideOrder o) throws RemoteException {
 		if (o.destination == ElevatorThread.STOP_FLOOR && !elevatorThreads[o.elevator].isMoving ())
 			return;
 		//Find out if this order is 'on the way', if so, make it an emergency order
