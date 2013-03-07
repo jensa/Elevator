@@ -38,6 +38,10 @@ public class ElevatorController implements Serializable{
 		elevatorThreads = new ElevatorThread[numElevators];
 		currentPositions = new double[numElevators];
 		lastPositions = new double[numElevators];
+		for (int i=0;i<numElevators;i++){
+			currentPositions[i] = controller.getElevator (i+1).whereIs ();
+			lastPositions[i] = controller.getElevator (i+1).whereIs ();
+		}
 		installListeners ();
 		for (int i=0;i<numElevators;i++){
 			ElevatorThread et = new ElevatorThread (i+1, controller);
@@ -215,7 +219,7 @@ public class ElevatorController implements Serializable{
 		double leastScore = Double.MAX_VALUE;
 		int closestElevator = -1;
 		for (int i=0;i<numElevators;i++){
-			if (costs[i] < leastScore){
+			if (costs[i] < leastScore && !goingToFloorWithDifferentDirection (i, o.floor, o.goingUp)){
 				closestElevator = i;
 				leastScore = costs[i];
 			}
@@ -229,6 +233,17 @@ public class ElevatorController implements Serializable{
 	}
 
 
+
+	private boolean goingToFloorWithDifferentDirection (int i, int floor, boolean goingUp) {
+		if (elevatorThreads[i].getCurrentOrder () != null){
+			if (elevatorThreads[i].getCurrentOrder () instanceof FloorOrder){
+				FloorOrder current = (FloorOrder) elevatorThreads[i].getCurrentOrder ();
+				if (current.goingUp != goingUp)
+					return true;
+			}
+		}
+		return false;
+	}
 
 	private boolean elevatorIsOnFloor (int floor, double d) {
 		return d > floor-0.001 && d < floor+0.001;

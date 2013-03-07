@@ -50,6 +50,7 @@ public class ElevatorThread implements Runnable{
 				while (emergencyOrders.isEmpty () && !elevatorOrders.isEmpty ()){
 					currentOrder = getNextOrder ();
 					move (currentOrder.getDestination ());
+					currentOrder = null;
 				}
 				while (!emergencyOrders.isEmpty ()){
 					currentOrder = getNextEmergencyOrder ();
@@ -57,6 +58,7 @@ public class ElevatorThread implements Runnable{
 						stop ();
 					else
 						move (currentOrder.getDestination ());
+					currentOrder = null;
 				}
 			}
 		}catch (Exception e){
