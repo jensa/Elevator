@@ -213,9 +213,7 @@ public class ElevatorController implements Serializable{
 			if (costs[i] == 0){
 				costs[i] = distance*3;
 				if (onTheWay)
-					costs[i] = costs[i] *0.5;
-				else
-					costs[i] = costs[i] *1;
+					costs[i] = costs[i] *0.1;
 			}
 		}
 		double leastScore = Double.MAX_VALUE;
