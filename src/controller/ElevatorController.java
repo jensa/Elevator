@@ -29,6 +29,7 @@ public class ElevatorController implements Serializable{
 	private double[] lastPositions;
 	private double velocity;
 	private boolean overSpeedLimit = false;
+	private static boolean test = true;
 
 
 	public ElevatorController () throws RemoteException{
@@ -144,13 +145,20 @@ public class ElevatorController implements Serializable{
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
 		playMuzak ();
-		while (true){
-			while (!elevatorOrders.isEmpty ()){
-				Order o = elevatorOrders.poll ();
-				if (o.isInsideOrder ()){
-					handleInsideOrder ((InsideOrder) o);
-				} else
-					handleFloorOrder ((FloorOrder) o);
+		
+		if (test) {
+			Tester t = new Tester (this);
+			t.testFloorOrder ();
+			t.testInsideOrder ();
+		} else {
+			while (true){
+				while (!elevatorOrders.isEmpty ()){
+					Order o = elevatorOrders.poll ();
+					if (o.isInsideOrder ()){
+						handleInsideOrder ((InsideOrder) o);
+					} else
+						handleFloorOrder ((FloorOrder) o);
+				}
 			}
 		}
 	}
