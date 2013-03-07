@@ -110,9 +110,12 @@ public class ElevatorThread implements Runnable{
 
 	private boolean getDestination (int floor, Motor m, Elevator el) throws RemoteException{
 		setMovingToFloor (floor);
+		int tmpEmergencySize;
 		if (el.whereIs () > floor){
+			tmpEmergencySize = emergencyOrders.size();
 			while (el.whereIs () > floor){
-				if (!emergencyOrders.isEmpty ()){
+				if (emergencyOrders.size() > tmpEmergencySize){
+					tmpEmergencySize = emergencyOrders.size();
 					Order o = new InsideOrder (-1, floor);
 					o.emergency = currentOrder.emergency;
 					currentOrder = null;
@@ -122,8 +125,9 @@ public class ElevatorThread implements Runnable{
 					m.down ();
 			}
 		} else if (el.whereIs () < floor){
+			tmpEmergencySize = emergencyOrders.size();
 			while (el.whereIs () < floor){
-				if (!emergencyOrders.isEmpty ()){
+				if (emergencyOrders.size() > tmpEmergencySize){
 					Order o = new InsideOrder (-1, floor);
 					o.emergency = currentOrder.emergency;
 					currentOrder = null;
@@ -148,9 +152,9 @@ public class ElevatorThread implements Runnable{
 	public void addOrder (Order o) throws RemoteException{
 		if (checkForDuplicate (o, elevatorOrders))
 			return;
-		if (o.getDestination () == STOP_FLOOR)
+		if (o.getDestination () == STOP_FLOOR) {
 			emergencyOrders.addFirst (o);
-		else if (o.emergency){
+		} else if (o.emergency){
 			boolean goingUp = movingToFloor > controller.getElevator (id).whereIs ();
 			if (emergencyOrders.isEmpty ()){
 				emergencyOrders.addFirst (o);
@@ -159,7 +163,7 @@ public class ElevatorThread implements Runnable{
 			addEmergencyOrder (o, goingUp);
 //			emergencyOrders.addLast (o);
 		}else
-			elevatorOrders.addFirst (o);
+			elevatorOrders.addLast (o);
 	}
 
 	private boolean checkForDuplicate (Order o, ConcurrentLinkedDeque<Order> queue) {
@@ -203,15 +207,10 @@ public class ElevatorThread implements Runnable{
 				temp.push (emergencyOrders.poll ());
 			}
 			emergencyOrders.addFirst (o);
-			while (!temp.isEmpty ())
+			while (!temp.isEmpty ()) {
 				emergencyOrders.addFirst (temp.pop ());
+			}
 		}
-		Iterator<Order> it = emergencyOrders.iterator ();
-		System.out.print ("[");
-		while (it.hasNext ())
-			System.out.print (it.next ().getDestination ()+", ");
-		System.out.print ("]\n");
-
 	}
 	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;

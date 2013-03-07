@@ -207,7 +207,7 @@ public class ElevatorController implements Serializable{
 				destination = elevatorThreads[i].getCurrentOrder().getDestination();
 			else 
 				destination = elevatorThreads[i].getLastOrder().getDestination();
-
+			System.out.println ("dest: "+destination+" odest: "+o.getDestination());
 			int distance = Math.abs(destination - o.getDestination());
 			boolean onTheWay = destinationIsOnTheWay (i, o.floor);
 			if (costs[i] == 0){
@@ -235,19 +235,15 @@ public class ElevatorController implements Serializable{
 		boolean goingUp = currentPositions[closestElevator] > lastPositions[closestElevator];
 		if (onTheWay && goingUp == o.goingUp)
 			o.emergency = true;
-		long time = System.currentTimeMillis () - startTime;
-		System.out.println ("time: "+time);
+		System.out.println(Arrays.toString (costs));
 		elevatorThreads[closestElevator].addOrder (o);
-
 	}
-
-
 
 	private boolean goingToFloorWithDifferentDirection (int i, int floor, boolean goingUp) {
 		if (elevatorThreads[i].getCurrentOrder () != null){
 			if (elevatorThreads[i].getCurrentOrder () instanceof FloorOrder){
 				FloorOrder current = (FloorOrder) elevatorThreads[i].getCurrentOrder ();
-				if (current.goingUp != goingUp)
+				if (current.floor == floor && current.goingUp != goingUp)
 					return true;
 			}
 		}
