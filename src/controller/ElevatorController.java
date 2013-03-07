@@ -7,6 +7,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.io.File;
 import java.io.Serializable;
@@ -142,7 +143,7 @@ public class ElevatorController implements Serializable{
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
-		playMuzak ();
+//		playMuzak ();
 	
 		while (true){
 			while (!elevatorOrders.isEmpty ()){
@@ -169,6 +170,7 @@ public class ElevatorController implements Serializable{
 	}
 
 	public void handleFloorOrder (FloorOrder o) throws RemoteException {
+		long startTime = System.currentTimeMillis ();
 		//Check if an elevator is on the way to the requested floor
 		double[] costs = new double[numElevators];
 		for (int i = 0; i < numElevators; i++) {
@@ -219,15 +221,22 @@ public class ElevatorController implements Serializable{
 		double leastScore = Double.MAX_VALUE;
 		int closestElevator = -1;
 		for (int i=0;i<numElevators;i++){
-			if (costs[i] < leastScore && !goingToFloorWithDifferentDirection (i, o.floor, o.goingUp)){
+			if (goingToFloorWithDifferentDirection (i, o.floor, o.goingUp))
+				costs[i] *= 100; // only take this elevator in the worst case
+			if (costs[i] < leastScore){
 				closestElevator = i;
 				leastScore = costs[i];
+					
 			}
 		}
+		if (closestElevator == -1)
+			System.out.println (Arrays.toString (costs)+" o.floor="+o.floor+"o.goingUp="+o.goingUp+"");
 		boolean onTheWay = destinationIsOnTheWay (closestElevator, o.floor);
 		boolean goingUp = currentPositions[closestElevator] > lastPositions[closestElevator];
 		if (onTheWay && goingUp == o.goingUp)
 			o.emergency = true;
+		long time = System.currentTimeMillis () - startTime;
+		System.out.println ("time: "+time);
 		elevatorThreads[closestElevator].addOrder (o);
 
 	}
