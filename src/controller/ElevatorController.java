@@ -221,10 +221,13 @@ public class ElevatorController implements Serializable{
 		for (int i=0;i<numElevators;i++){
 			if (goingToFloorWithDifferentDirection (i, o.floor, o.goingUp))
 				costs[i] *= 100; // only take this elevator in the worst case
+			if (checkIfOrderIsOnTheImpliedWay (i, o.floor, o.goingUp)){
+				System.out.println ("IMPLIED elevator "+i);
+				costs[i] *=0.3;
+			}
 			if (costs[i] < leastScore){
 				closestElevator = i;
 				leastScore = costs[i];
-					
 			}
 		}
 		if (closestElevator == -1)
@@ -246,6 +249,17 @@ public class ElevatorController implements Serializable{
 			if (elevatorThreads[i].getCurrentOrder () instanceof FloorOrder){
 				FloorOrder current = (FloorOrder) elevatorThreads[i].getCurrentOrder ();
 				if (current.floor == floor && current.goingUp != goingUp)
+					return true;
+			}
+		}
+		return false;
+	}
+	
+	private boolean checkIfOrderIsOnTheImpliedWay (int i, int floor, boolean goingUp) {
+		if (elevatorThreads[i].getCurrentOrder () != null){
+			if (elevatorThreads[i].getCurrentOrder () instanceof FloorOrder){
+				FloorOrder current = (FloorOrder) elevatorThreads[i].getCurrentOrder ();
+				if (!destinationIsOnTheWay (i, floor) && current.goingUp == goingUp)
 					return true;
 			}
 		}
