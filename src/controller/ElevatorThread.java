@@ -84,7 +84,7 @@ public class ElevatorThread implements Runnable{
 		setIsMoving (true);
 		Motor m = controller.getMotor (id);
 		Elevator el = controller.getElevator (id);
-		if (getDestination (floor, m, el)){
+		if (completeMove (floor, m, el)){
 			setIsMoving (false);
 			openDoor ();
 		} else{
@@ -107,31 +107,30 @@ public class ElevatorThread implements Runnable{
 		}
 		controller.getDoor (id).close ();
 	}
-
-	private boolean getDestination (int floor, Motor m, Elevator el) throws RemoteException{
+	/**
+	 * Move the given elevator to a given floor using the given motor
+	 * @param floor
+	 * @param m
+	 * @param el
+	 * @return true if the elevator managed to move uninterrupted to the specified floor, false
+	 * if it was interrupted (by an emergency order)
+	 * @throws RemoteException
+	 */
+	private boolean completeMove (int floor, Motor m, Elevator el) throws RemoteException{
 		setMovingToFloor (floor);
-		int tmpEmergencySize;
+		int tmpEmergencySize = emergencyOrders.size();
 		if (el.whereIs () > floor){
-			tmpEmergencySize = emergencyOrders.size();
 			while (el.whereIs () > floor){
 				if (emergencyOrders.size() > tmpEmergencySize){
-					tmpEmergencySize = emergencyOrders.size();
-					Order o = new InsideOrder (-1, floor);
-					o.emergency = currentOrder.emergency;
-					currentOrder = null;
-					addOrder (o);
+					addNewEmergency (floor);
 					return false;
 				}else
 					m.down ();
 			}
 		} else if (el.whereIs () < floor){
-			tmpEmergencySize = emergencyOrders.size();
 			while (el.whereIs () < floor){
 				if (emergencyOrders.size() > tmpEmergencySize){
-					Order o = new InsideOrder (-1, floor);
-					o.emergency = currentOrder.emergency;
-					currentOrder = null;
-					addOrder (o);
+					addNewEmergency (floor);
 					return false;
 				}else
 					m.up ();
@@ -141,6 +140,13 @@ public class ElevatorThread implements Runnable{
 		return true;
 	}
 
+	private void addNewEmergency (int floor) throws RemoteException {
+		Order o = new InsideOrder (-1, floor);
+		o.emergency = currentOrder.emergency;
+		currentOrder = null;
+		addOrder (o);
+	}
+	
 	public Order getNextOrder (){
 		return elevatorOrders.poll ();
 	}
@@ -161,57 +167,48 @@ public class ElevatorThread implements Runnable{
 				return;
 			}
 			addEmergencyOrder (o, goingUp);
-//			emergencyOrders.addLast (o);
 		}else
 			elevatorOrders.addLast (o);
 	}
 
 	private boolean checkForDuplicate (Order o, ConcurrentLinkedDeque<Order> queue) {
-
 		boolean isDuplicate = false;
 		Iterator<Order> it = queue.iterator();
-
 		if (currentOrder != null) {
 			isDuplicate = (currentOrder.compareTo(o) == 1);
 		}
-		
 		while (it.hasNext()) {
 			if (o.compareTo(it.next()) == 1)
 				isDuplicate = true;
 		}
-
 		if (isDuplicate) {
 			System.out.println("Duplicate Order, not added to the queue");
 			return true;
 		}
-
 		return false;
 	}
+	
+	/**
+	 * Adds the specified order to the emergency queue in sorted order
+	 * @param o The order to add
+	 * @param goingUp true if elevator is currently moving upwards, false if downwards.
+	 */
 	private void addEmergencyOrder (Order o, boolean goingUp) {
 		if (checkForDuplicate (o, emergencyOrders))
 			return;
-
+		int dir = goingUp ? 1 :-1;
 		Stack<Order> temp = new Stack<Order> ();
 		Order cur = emergencyOrders.getFirst ();
-		if (goingUp){
-			while (!emergencyOrders.isEmpty () && cur.getDestination () < o.getDestination ()){
-				temp.push (emergencyOrders.poll ());
-				if (!emergencyOrders.isEmpty ())
-					cur = emergencyOrders.peek ();
-			}
-			emergencyOrders.addFirst (o);
-			while (!temp.isEmpty ())
-				emergencyOrders.addFirst (temp.pop ());
-		} else{
-			while (!emergencyOrders.isEmpty () && cur.getDestination () > o.getDestination ()){
-				temp.push (emergencyOrders.poll ());
-			}
-			emergencyOrders.addFirst (o);
-			while (!temp.isEmpty ()) {
-				emergencyOrders.addFirst (temp.pop ());
-			}
+		while (!emergencyOrders.isEmpty () && cur.getDestination ()*dir < o.getDestination ()*dir){
+			temp.push (emergencyOrders.poll ());
+			if (!emergencyOrders.isEmpty ())
+				cur = emergencyOrders.peek ();
 		}
+		emergencyOrders.addFirst (o);
+		while (!temp.isEmpty ())
+			emergencyOrders.addFirst (temp.pop ());
 	}
+	
 	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;
 	}

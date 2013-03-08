@@ -143,8 +143,7 @@ public class ElevatorController implements Serializable{
 	}
 
 	public void runElevatorController () throws RemoteException, InterruptedException{
-//		playMuzak ();
-	
+		playMuzak ();
 		while (true){
 			while (!elevatorOrders.isEmpty ()){
 				Order o = elevatorOrders.poll ();
@@ -170,7 +169,6 @@ public class ElevatorController implements Serializable{
 	}
 
 	public void handleFloorOrder (FloorOrder o) throws RemoteException {
-		long startTime = System.currentTimeMillis ();
 		//Check if an elevator is on the way to the requested floor
 		double[] costs = new double[numElevators];
 		for (int i = 0; i < numElevators; i++) {
