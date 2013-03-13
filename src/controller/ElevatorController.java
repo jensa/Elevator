@@ -59,6 +59,9 @@ public class ElevatorController implements Serializable{
 				@Override
 				public void actionPerformed (ActionEvent e)
 						throws RemoteException {
+					synchronized (this){
+						this.notify ();
+					}
 					floorButtonPressed (floor, e);
 				}
 
@@ -74,6 +77,9 @@ public class ElevatorController implements Serializable{
 				@Override
 				public void actionPerformed (ActionEvent e)
 						throws RemoteException {
+					synchronized (this){
+						this.notify ();
+					}
 					insideButtonPressed (elevator, e);
 				}
 			}, 0);
@@ -145,6 +151,9 @@ public class ElevatorController implements Serializable{
 	public void runElevatorController () throws RemoteException, InterruptedException{
 		playMuzak ();
 		while (true){
+			synchronized (this){
+				this.wait (1000);
+			}
 			while (!elevatorOrders.isEmpty ()){
 				Order o = elevatorOrders.poll ();
 				if (o.isInsideOrder ()){
