@@ -47,6 +47,9 @@ public class ElevatorThread implements Runnable{
 	public void run () {
 		try{
 			while (true){
+				synchronized (this){
+					this.wait (1000);
+				}
 				while (emergencyOrders.isEmpty () && !elevatorOrders.isEmpty ()){
 					currentOrder = getNextOrder ();
 					move (currentOrder.getDestination ());
@@ -169,6 +172,9 @@ public class ElevatorThread implements Runnable{
 			addEmergencyOrder (o, goingUp);
 		}else
 			elevatorOrders.addLast (o);
+		synchronized (this){
+			this.notify ();
+		}
 	}
 
 	private boolean checkForDuplicate (Order o, ConcurrentLinkedDeque<Order> queue) {
@@ -234,6 +240,8 @@ public class ElevatorThread implements Runnable{
 	}
 
 	public Order getLastOrder () {
+		if (elevatorOrders.isEmpty () && currentOrder != null)
+			return currentOrder;
 		return elevatorOrders.peekLast();
 	}
 }

@@ -189,79 +189,84 @@ public class ElevatorController implements Serializable{
 				}
 			}
 		}
-		//Give a destination cost to non-moving elevators based on their distance to the requested floor
-		for (int i=0;i<numElevators;i++){
-			if (!elevatorThreads[i].isMoving ()){
-				double distToFloor = Math.abs (o.floor-currentPositions[i]);
-				costs[i] = distToFloor;
-			}
-		}
-		//give a destination cost to moving elevators based on the distance to the requested floor from their current final destination
+		//give a destination cost to elevators based on the distance to the requested floor from their current final destination
 		for (int i = 0; i < numElevators; i++) {
-			if (!elevatorThreads[i].isMoving ())
+			if (!elevatorThreads[i].isMoving ()){
+				costs[i] = Math.abs (o.floor-currentPositions[i]);
 				continue;
-			int destination;
-			if (elevatorThreads[i].getLastOrder() == null )
-				destination = elevatorThreads[i].getCurrentOrder().getDestination();
-			else 
-				destination = elevatorThreads[i].getLastOrder().getDestination();
-			System.out.println ("dest: "+destination+" odest: "+o.getDestination());
-			int distance = 1+Math.abs(destination - o.getDestination());
-			boolean onTheWay = destinationIsOnTheWay (i, o.floor) && elevatorGoingUp (i) == o.goingUp;
-			if (costs[i] == 0){
-				costs[i] = distance*3;
-				if (onTheWay)
-					costs[i] = costs[i] *0.1;
 			}
+			int destination = elevatorThreads[i].getLastOrder().getDestination();
+			int distance = (1+Math.abs(destination - o.getDestination()))*3;
+			boolean onTheWay = destinationIsOnTheWay (i, o.floor) && elevatorGoingUp (i) == o.goingUp;
+			costs[i] = distance;
+			if (onTheWay)
+				costs[i] *= 0.1;
+			if (goingToFloorWithDifferentDirection (i, o))
+				costs[i] *= 100; // only take this elevator in the worst case
+			if (orderIsOnTheImpliedWay (i,o))
+				costs[i] *=0.3;
 		}
 		double leastScore = Double.MAX_VALUE;
 		int closestElevator = -1;
 		for (int i=0;i<numElevators;i++){
-			if (goingToFloorWithDifferentDirection (i, o.floor, o.goingUp))
-				costs[i] *= 100; // only take this elevator in the worst case
-			if (checkIfOrderIsOnTheImpliedWay (i, o.floor, o.goingUp)){
-				System.out.println ("IMPLIED elevator "+i);
-				costs[i] *=0.3;
-			}
 			if (costs[i] < leastScore){
 				closestElevator = i;
 				leastScore = costs[i];
 			}
 		}
-		if (closestElevator == -1)
-			System.out.println (Arrays.toString (costs)+" o.floor="+o.floor+"o.goingUp="+o.goingUp+"");
 		boolean onTheWay = destinationIsOnTheWay (closestElevator, o.floor);
 		boolean goingUp = currentPositions[closestElevator] > lastPositions[closestElevator];
 		if (onTheWay && goingUp == o.goingUp)
 			o.emergency = true;
-		System.out.println(Arrays.toString (costs));
 		elevatorThreads[closestElevator].addOrder (o);
 	}
+	/**
+	 * Compares the direction and destination of the current order of the specified elevator and the specified FloorOrder.
+	 * Return true if the destination, but not the direction matches.
+	 * This is so that we can avoid the case ofone elevator getting both an order to go down and up from the same floor.
+	 * @param i
+	 * @param floor
+	 * @param goingUp
+	 * @return true if going to the same floor, but with different directions
+	 */
+	private boolean goingToFloorWithDifferentDirection (int i, FloorOrder o){
+		if (elevatorThreads[i].getCurrentOrder () != null){
+			if (elevatorThreads[i].getCurrentOrder () instanceof FloorOrder){
+				FloorOrder current = (FloorOrder) elevatorThreads[i].getCurrentOrder ();
+				if (current.floor == o.floor && current.goingUp != o.goingUp)
+					return true;
+			}
+		}
+		return false;
+	}
+	/**
+	 * Check if the specified order corresponds to the direction of 
+	 * the order currently being handled by the elevator with the specified id.
+	 * 
+	 * Example:
+	 * 
+	 * current order is 'go up' from floor 2. specified order is 'go up' from floor 4.
+	 * floor 4 is 'up' from floor 2, and so it lies on the elevator's future route.
+	 * @param id the id of the elevator to check
+	 * @param o the order to check
+	 * @return true if the specified order in on the elevator's future route, false otherwise
+	 */
+	private boolean orderIsOnTheImpliedWay (int id, FloorOrder o){
+		if (elevatorThreads[id].getCurrentOrder () != null){
+			if (elevatorThreads[id].getCurrentOrder () instanceof FloorOrder){
+				FloorOrder current = (FloorOrder) elevatorThreads[id].getCurrentOrder ();
+				if (current.floor > o.floor && !current.goingUp && current.goingUp == o.goingUp)
+					return true;
+				if (current.floor < o.floor && current.goingUp && current.goingUp == o.goingUp)
+					return true;
+			}
+		}
+		return false;
+	}
+
 	
 	private boolean elevatorGoingUp (int el){
 		return currentPositions[el] > lastPositions[el];
-	}
-
-	private boolean goingToFloorWithDifferentDirection (int i, int floor, boolean goingUp) {
-		if (elevatorThreads[i].getCurrentOrder () != null){
-			if (elevatorThreads[i].getCurrentOrder () instanceof FloorOrder){
-				FloorOrder current = (FloorOrder) elevatorThreads[i].getCurrentOrder ();
-				if (current.floor == floor && current.goingUp != goingUp)
-					return true;
-			}
-		}
-		return false;
-	}
-	
-	private boolean checkIfOrderIsOnTheImpliedWay (int i, int floor, boolean goingUp) {
-		if (elevatorThreads[i].getCurrentOrder () != null){
-			if (elevatorThreads[i].getCurrentOrder () instanceof FloorOrder){
-				FloorOrder current = (FloorOrder) elevatorThreads[i].getCurrentOrder ();
-				if (!destinationIsOnTheWay (i, floor) && current.goingUp == goingUp)
-					return true;
-			}
-		}
-		return false;
 	}
 
 	private boolean elevatorIsOnFloor (int floor, double d) {
@@ -281,7 +286,6 @@ public class ElevatorController implements Serializable{
 		ElevatorThread elevatorThread = elevatorThreads[elevator];
 		if (curPos > lastPositions[elevator]){
 			//going up
-			//if the floor wanted is on the way, we'll give priority to this order
 			if (destination > curPos && destination < elevatorThread.getMovingToFloor ())
 				return true;
 		} else if (curPos < lastPositions[elevator]){
