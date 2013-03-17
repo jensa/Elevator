@@ -35,7 +35,11 @@ public class RMI implements Serializable, Remote{
 			e.printStackTrace();
 		}
 	}
-	
+	/**
+	 * Sets up securitymanager and RMI registry.
+	 * @throws RemoteException
+	 * @throws NotBoundException
+	 */
 	private void setupRegistry () throws RemoteException, NotBoundException{
 		if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());

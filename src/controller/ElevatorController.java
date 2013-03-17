@@ -186,7 +186,9 @@ public class ElevatorController implements Serializable{
 			}
 		}
 	}
-
+	/**
+	 * continously plays a jazz version of the Pokémon theme as elevator music
+	 */
 	private void playMuzak () {
 		URL soundPath = null;
 		try {
@@ -199,7 +201,11 @@ public class ElevatorController implements Serializable{
 		muzak.loop ();
 		
 	}
-
+	/**
+	 * Floor order calculation algorithm. Decides on which elevator should get which request (button press).
+	 * @param o The request (order) containing information on which floor it was issued from, and what direction it has.
+	 * @throws RemoteException
+	 */
 	public void handleFloorOrder (FloorOrder o) throws RemoteException {
 		//Check if an elevator is on the way to the requested floor
 		double[] costs = new double[numElevators];
@@ -296,15 +302,29 @@ public class ElevatorController implements Serializable{
 		return false;
 	}
 
-	
+	/**
+	 * Check if elevator is going up
+	 * @param el elevator index
+	 * @return true if going up, false if going down
+	 */
 	private boolean elevatorGoingUp (int el){
 		return currentPositions[el] > lastPositions[el];
 	}
-
-	private boolean elevatorIsOnFloor (int floor, double d) {
-		return d > floor-0.001 && d < floor+0.001;
+	/**
+	 * Checks if a position is on a specified floor, with 0.001 precision.
+	 * @param floor the floor ot check
+	 * @param position the elevator's position
+	 * @return true if the position is on the specified floor, false otherwise.
+	 */
+	private boolean elevatorIsOnFloor (int floor, double position) {
+		return position > floor-0.001 && position < floor+0.001;
 	}
-
+	/**
+	 * Pass on orders coming from inside an elevator. Decides whether or not the order 
+	 * should be treated as an emergency order (i.e be dealt with during travel)
+	 * @param o
+	 * @throws RemoteException
+	 */
 	public void handleInsideOrder (InsideOrder o) throws RemoteException {
 		if (o.destination == ElevatorThread.STOP_FLOOR && !elevatorThreads[o.elevator].isMoving ())
 			return;
@@ -313,6 +333,13 @@ public class ElevatorController implements Serializable{
 		o.emergency = destinationIsOnTheWay (o.elevator, o.destination);
 		elevatorThreads[o.elevator].addOrder(o);
 	}
+	/**
+	 * Checks whether the specified destination is on the way 
+	 * to a specified elevators current final destination.
+	 * @param elevator the elevator to check
+	 * @param destination the floor destination
+	 * @return true if on the way, false otherwise
+	 */
 	private boolean destinationIsOnTheWay (int elevator, int destination) {
 		double curPos = currentPositions[elevator];
 		ElevatorThread elevatorThread = elevatorThreads[elevator];
@@ -327,11 +354,17 @@ public class ElevatorController implements Serializable{
 		}
 		return false;
 	}
-	
+	/**
+	 * Return all elevator threads
+	 * @return an array containing all elevator threads.
+	 */
 	public ElevatorThread[] getElevatorThreads () {
 		return elevatorThreads;
 	}
-
+	/**
+	 * Main method. Set security policy and start controller
+	 * @param args
+	 */
 	public static void main(String[] args){
 		//Set policy file so we don't get weird permission errors
 		System.setProperty("java.security.policy","file:./rmi.policy");
