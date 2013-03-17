@@ -30,7 +30,10 @@ public class ElevatorController implements Serializable{
 	private double[] lastPositions;
 	private double velocity;
 	private boolean overSpeedLimit = false;
-
+	/**
+	 * Creates a new ElevatorController, initializes Elevator threads and RMI communication/listeners.
+	 * @throws RemoteException if something goes wrong with the RMI communication.
+	 */
 	public ElevatorController () throws RemoteException{
 		controller = new RMI ();
 		numElevators = controller.getNumberOfElevators ();
@@ -49,7 +52,10 @@ public class ElevatorController implements Serializable{
 			new Thread (et).start ();
 		}
 	}
-
+	/**
+	 * Install RMI listeners which the GUI/model server activates.
+	 * @throws RemoteException
+	 */
 	private void installListeners () throws RemoteException {
 		for (int i=0;i<numFloors;i++){
 			final int floor = i;
@@ -109,7 +115,10 @@ public class ElevatorController implements Serializable{
 		}, 0);
 		controller.makeVelocityListener (listener);
 	}
-
+	/**
+	 * Called by listener when the velocity slider is moved.
+	 * @param e
+	 */
 	protected void velocityChanged (ActionEvent e) {
 		String command = e.getActionCommand ();
 		double rawVelocity = Double.parseDouble (command.split (" ")[1]);
@@ -122,8 +131,8 @@ public class ElevatorController implements Serializable{
 	}
 	/**
 	 * Update the position tracking arrays with a new position for the specified elevator
-	 * @param elevator
-	 * @param e
+	 * @param elevator the index of the elevator that moved
+	 * @param e the movement event (new position)
 	 */
 	protected void elevatorMoved (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
@@ -132,7 +141,12 @@ public class ElevatorController implements Serializable{
 		currentPositions[elevator] = position;
 		//System.out.println ("Elevator "+elevator+" moved");
 	}
-
+	/**
+	 * Called by listener when a button on a floor is pressed
+	 * @param floor the flor which the button that was pressed is on
+	 * @param e the event itself (which direction to go in)
+	 * @throws RemoteException
+	 */
 	private void floorButtonPressed (int floor, ActionEvent e) throws RemoteException {
 		// find the nearest? elevator that's not occupied and send it to the floor
 		String command = e.getActionCommand ();
@@ -140,14 +154,23 @@ public class ElevatorController implements Serializable{
 		FloorOrder order = new FloorOrder (floor, direction > 0);
 		elevatorOrders.addLast (order);
 	}
-
+	/**
+	 * Called by listener when a button inside an elevator is pressed
+	 * @param elevator index of elevator
+	 * @param e the event itself (which button was pressed)
+	 */
 	private void insideButtonPressed (int elevator, ActionEvent e) {
 		String command = e.getActionCommand ();
 		int destination = Integer.parseInt (command.split (" ")[2]);
 		InsideOrder order = new InsideOrder (elevator, destination);
 		elevatorOrders.addLast (order);
 	}
-
+	/**
+	 * Main/master thread loop. Waits on this object, and when notified, 
+	 * checks its dispatch queue until empty and send messages to separate elevator threads
+	 * @throws RemoteException
+	 * @throws InterruptedException
+	 */
 	public void runElevatorController () throws RemoteException, InterruptedException{
 		playMuzak ();
 		while (true){
