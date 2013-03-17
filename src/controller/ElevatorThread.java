@@ -4,19 +4,21 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
-import Orders.FloorOrder;
 import Orders.InsideOrder;
 import Orders.Order;
 
 import elevator.rmi.Elevator;
 import elevator.rmi.Motor;
 import java.applet.*;
-
+/**
+ * Controls the movement of a single elevator.
+ * @author jens & lurv
+ *
+ */
 public class ElevatorThread implements Runnable{
 	public static final int STOP_FLOOR = 32000;
 	RMI controller;
@@ -27,7 +29,11 @@ public class ElevatorThread implements Runnable{
 	private ConcurrentLinkedDeque<Order> emergencyOrders = new ConcurrentLinkedDeque<Order> ();
 	private ConcurrentLinkedDeque<Order> elevatorOrders = new ConcurrentLinkedDeque<Order> ();
 	private int movingToFloor;
-
+	/**
+	 * Constucts a new Elevator control thread. Initializes elevator music.
+	 * @param id the index of this elevator
+	 * @param controller RMI controller used to check elevator status and control elevator.
+	 */
 	public ElevatorThread (int id, RMI controller){
 		this.controller = controller;
 		this.id = id;
@@ -142,22 +148,37 @@ public class ElevatorThread implements Runnable{
 		m.stop ();
 		return true;
 	}
-
+	/**
+	 * Create a new order for the specified floor and flag it as emergency, then add it to the queue.
+	 * Used to 'save' current orders when a new one interrupts it.
+	 * @param floor the floor to go to
+	 * @throws RemoteException
+	 */
 	private void addNewEmergency (int floor) throws RemoteException {
 		Order o = new InsideOrder (-1, floor);
 		o.emergency = currentOrder.emergency;
 		currentOrder = null;
 		addOrder (o);
 	}
-	
+	/**
+	 * Gets the next (non-emergency) order.
+	 * @return
+	 */
 	public Order getNextOrder (){
 		return elevatorOrders.poll ();
 	}
-
+	/**
+	 * Get the next emergency order.
+	 * @return
+	 */
 	public Order getNextEmergencyOrder (){
 		return emergencyOrders.poll ();
 	}
-
+	/**
+	 * Add an order to this elevators' queue. Orders flagged as emergency will get priority.
+	 * @param o The order to add
+	 * @throws RemoteException
+	 */
 	public void addOrder (Order o) throws RemoteException{
 		if (checkForDuplicate (o, elevatorOrders))
 			return;
@@ -176,7 +197,13 @@ public class ElevatorThread implements Runnable{
 			this.notify ();
 		}
 	}
-
+	/**
+	 * Checks if and order equal to the specified order is being 
+	 * carried out or exists in the specified queue.
+	 * @param o
+	 * @param queue
+	 * @return
+	 */
 	private boolean checkForDuplicate (Order o, ConcurrentLinkedDeque<Order> queue) {
 		boolean isDuplicate = false;
 		Iterator<Order> it = queue.iterator();
@@ -214,31 +241,52 @@ public class ElevatorThread implements Runnable{
 		while (!temp.isEmpty ())
 			emergencyOrders.addFirst (temp.pop ());
 	}
-	
+	/**
+	 * Return all current non-emergency orders this elevator has.
+	 * @return
+	 */
 	public ConcurrentLinkedDeque<Order> getOrders (){
 		return elevatorOrders;
 	}
-
+	/**
+	 * Returns true if the elevator is currently on the move.
+	 * @return true if moving, false otherwise
+	 */
 	public synchronized boolean isMoving (){
 		return isMoving;
 	}
-
+	/**
+	 * Set whether the elevator is moving or not.
+	 * @param isMo
+	 */
 	public synchronized void setIsMoving (boolean isMo){
 		isMoving = isMo;
 	}
-
+	/**
+	 * Set which floor this elevator is currently moving towards.
+	 * @param fl
+	 */
 	public synchronized void setMovingToFloor (int fl){
 		movingToFloor = fl;
 	}
-
+	/**
+	 * 
+	 * @return which floor this elevator is moving to.
+	 */
 	public synchronized int getMovingToFloor (){
 		return movingToFloor;
 	}
-
+	/**
+	 * Get the order currently being carried out by this elevator
+	 * @return
+	 */
 	public Order getCurrentOrder () {
 		return currentOrder;
 	}
-
+	/**
+	 * Get the order at the end of this elevators' order queue
+	 * @return
+	 */
 	public Order getLastOrder () {
 		if (elevatorOrders.isEmpty () && currentOrder != null)
 			return currentOrder;

@@ -7,7 +7,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.io.File;
 import java.io.Serializable;
@@ -20,7 +19,6 @@ import elevator.rmi.RemoteActionListener;
 public class ElevatorController implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
-	private static final double VELOCITY_LIMIT_TRIGGER = 10;
 	private RMI controller;
 	private int numElevators;
 	private int numFloors;
@@ -28,8 +26,6 @@ public class ElevatorController implements Serializable{
 	private ConcurrentLinkedDeque<Order> elevatorOrders = new ConcurrentLinkedDeque<Order> ();
 	private double[] currentPositions;
 	private double[] lastPositions;
-	private double velocity;
-	private boolean overSpeedLimit = false;
 	/**
 	 * Creates a new ElevatorController, initializes Elevator threads and RMI communication/listeners.
 	 * @throws RemoteException if something goes wrong with the RMI communication.
@@ -117,17 +113,10 @@ public class ElevatorController implements Serializable{
 	}
 	/**
 	 * Called by listener when the velocity slider is moved.
+	 * not used.
 	 * @param e
 	 */
 	protected void velocityChanged (ActionEvent e) {
-		String command = e.getActionCommand ();
-		double rawVelocity = Double.parseDouble (command.split (" ")[1]);
-		double vel = rawVelocity * 100000;
-		velocity = vel;
-		if (velocity > VELOCITY_LIMIT_TRIGGER)
-			overSpeedLimit = true;
-		else
-			overSpeedLimit = false;
 	}
 	/**
 	 * Update the position tracking arrays with a new position for the specified elevator
