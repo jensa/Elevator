@@ -19,6 +19,8 @@ import elevator.rmi.RemoteActionListener;
 public class ElevatorController implements Serializable{
 	private static final long serialVersionUID = 1L;
 	
+	static boolean PLAY_MUZAK = true;
+	
 	private RMI controller;
 	private int numElevators;
 	private int numFloors;
@@ -161,7 +163,8 @@ public class ElevatorController implements Serializable{
 	 * @throws InterruptedException
 	 */
 	public void runElevatorController () throws RemoteException, InterruptedException{
-		playMuzak ();
+		if (PLAY_MUZAK)
+			playMuzak ();
 		while (true){
 			synchronized (this){
 				this.wait (1000);
@@ -358,6 +361,8 @@ public class ElevatorController implements Serializable{
 		//Set policy file so we don't get weird permission errors
 		System.setProperty("java.security.policy","file:./rmi.policy");
 		try {
+			if (args.length > 0)
+				PLAY_MUZAK = false;
 			new ElevatorController ().runElevatorController ();
 		} catch (RemoteException e) {
 			e.printStackTrace();
